@@ -110,11 +110,13 @@ layout_mode = 2
 
 [node name="HmapTextureRect" type="TextureRect" parent="CenterContainer/FlowContainer/MarginContainer/Sliders/HeightmapOutput/MarginContainer/AspectRatioContainer"]
 unique_name_in_owner = true
+custom_minimum_size = Vector2(512, 512)
 layout_mode = 2
 
 [node name="AreasOverlay" type="Control" parent="CenterContainer/FlowContainer/MarginContainer/Sliders/HeightmapOutput/MarginContainer/AspectRatioContainer"]
 unique_name_in_owner = true
 visible = false
+custom_minimum_size = Vector2(512, 512)
 layout_mode = 2
 script = ExtResource("2_rj5w7")
 

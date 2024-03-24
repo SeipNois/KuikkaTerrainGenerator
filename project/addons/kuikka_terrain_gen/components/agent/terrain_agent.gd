@@ -40,7 +40,12 @@ var tokens: int = 0:
 			process_mode = Node.PROCESS_MODE_DISABLED
 
 ## Mapped area of effect
-var area_silhouette : Array[Curve2D]
+var area_silhouette : Dictionary = {
+	"agent_travel" :  Array[Curve2D].new(),
+	"brush_mask" : Array(),
+	"delaunay" : Array[Delaunay.VoronoiSite].new()
+}
+
 
 ## Image mask for brush to blend to.
 var brush : Image
@@ -105,3 +110,8 @@ func _modulate_brush_alpha(a: float):
 		for y in brush.get_height():
 			var bc = brush.get_pixel(x, y)
 			brush.set_pixel(x, y, Color(bc.r, bc.g, bc.b, bc.a * a))
+
+
+## Create weighted gene map based on agent movements and brush mask.
+func _create_gene_map():
+	pass

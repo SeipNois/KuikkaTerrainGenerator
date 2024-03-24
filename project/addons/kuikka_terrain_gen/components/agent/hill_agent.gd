@@ -25,7 +25,7 @@ func _generation_process():
 							brush.get_used_rect(), 
 							last_position-offset)
 	
-	area_silhouette[-1].add_point(last_position)
+	area_silhouette["agent_travel"][-1].add_point(last_position)
 	
 	# Get next position, round new position to pixels.
 	var speed = rng.randi_range(parameters.move_speed.x, parameters.move_speed.y)
@@ -45,7 +45,7 @@ func _generation_process():
 		last_position = Vector2i(rng.randi_range(offset.x, heightmap.get_width()-offset.x),
 								rng.randi_range(offset.y, heightmap.get_height()-offset.y))
 		# Add new curve when starting from new position.
-		area_silhouette.append(Curve2D.new())
+		area_silhouette["agent_travel"].append(Curve2D.new())
 	
 	tokens -= 1
 
@@ -63,7 +63,7 @@ func start_generation():
 	last_position = start_position
 	move_direction = Vector2i(rng.randi_range(-1, 1),
 								rng.randi_range(-1, 1))
-	area_silhouette.append(Curve2D.new())
+	area_silhouette["agent_travel"].append(Curve2D.new())
 	
 	# Start generation.
 	super.start_generation()
