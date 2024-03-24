@@ -1,0 +1,166 @@
+[gd_scene load_steps=3 format=3 uid="uid://dr8jxl8ojkoip"]
+
+[ext_resource type="Script" path="res://addons/kuikka_terrain_gen/ui/terrain_generator_ui.gd" id="1_gw8ut"]
+[ext_resource type="Script" path="res://addons/kuikka_terrain_gen/ui/areas_ui_handler.gd" id="2_rj5w7"]
+
+[node name="TerrainGeneratorUI" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+script = ExtResource("1_gw8ut")
+
+[node name="CenterContainer" type="CenterContainer" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+
+[node name="FlowContainer" type="FlowContainer" parent="CenterContainer"]
+layout_mode = 2
+
+[node name="MarginContainer" type="MarginContainer" parent="CenterContainer/FlowContainer"]
+layout_mode = 2
+mouse_filter = 2
+theme_override_constants/margin_left = 30
+theme_override_constants/margin_top = 30
+theme_override_constants/margin_right = 30
+theme_override_constants/margin_bottom = 30
+
+[node name="Sliders" type="HBoxContainer" parent="CenterContainer/FlowContainer/MarginContainer"]
+clip_contents = true
+custom_minimum_size = Vector2(600, 0)
+layout_mode = 2
+alignment = 1
+
+[node name="VBoxContainer" type="VBoxContainer" parent="CenterContainer/FlowContainer/MarginContainer/Sliders"]
+layout_mode = 2
+
+[node name="GenerationSeed" type="HBoxContainer" parent="CenterContainer/FlowContainer/MarginContainer/Sliders/VBoxContainer"]
+layout_mode = 2
+
+[node name="Label" type="Label" parent="CenterContainer/FlowContainer/MarginContainer/Sliders/VBoxContainer/GenerationSeed"]
+custom_minimum_size = Vector2(150, 0)
+layout_mode = 2
+text = "Generation seed"
+
+[node name="SeedSpinBox" type="SpinBox" parent="CenterContainer/FlowContainer/MarginContainer/Sliders/VBoxContainer/GenerationSeed"]
+layout_mode = 2
+rounded = true
+allow_greater = true
+
+[node name="Tokens" type="HBoxContainer" parent="CenterContainer/FlowContainer/MarginContainer/Sliders/VBoxContainer"]
+layout_mode = 2
+
+[node name="Label" type="Label" parent="CenterContainer/FlowContainer/MarginContainer/Sliders/VBoxContainer/Tokens"]
+custom_minimum_size = Vector2(150, 0)
+layout_mode = 2
+text = "Initial tokens"
+
+[node name="TokensSpinBox" type="SpinBox" parent="CenterContainer/FlowContainer/MarginContainer/Sliders/VBoxContainer/Tokens"]
+layout_mode = 2
+max_value = 1000.0
+value = 15.0
+
+[node name="MoveSpeed" type="HBoxContainer" parent="CenterContainer/FlowContainer/MarginContainer/Sliders/VBoxContainer"]
+layout_mode = 2
+
+[node name="Label" type="Label" parent="CenterContainer/FlowContainer/MarginContainer/Sliders/VBoxContainer/MoveSpeed"]
+custom_minimum_size = Vector2(150, 0)
+layout_mode = 2
+text = "Agent speed "
+
+[node name="MoveSpeedMinSpinBox" type="SpinBox" parent="CenterContainer/FlowContainer/MarginContainer/Sliders/VBoxContainer/MoveSpeed"]
+layout_mode = 2
+value = 10.0
+
+[node name="MoveSpeedMaxSpinBox" type="SpinBox" parent="CenterContainer/FlowContainer/MarginContainer/Sliders/VBoxContainer/MoveSpeed"]
+layout_mode = 2
+value = 10.0
+
+[node name="HBoxContainer" type="HBoxContainer" parent="CenterContainer/FlowContainer/MarginContainer/Sliders/VBoxContainer"]
+layout_mode = 2
+
+[node name="Label" type="Label" parent="CenterContainer/FlowContainer/MarginContainer/Sliders/VBoxContainer/HBoxContainer"]
+layout_mode = 2
+text = "Show effect areas"
+
+[node name="EffectAreaCheckButton" type="CheckButton" parent="CenterContainer/FlowContainer/MarginContainer/Sliders/VBoxContainer/HBoxContainer"]
+layout_mode = 2
+
+[node name="HeightmapOutput" type="VBoxContainer" parent="CenterContainer/FlowContainer/MarginContainer/Sliders"]
+layout_mode = 2
+
+[node name="MarginContainer" type="MarginContainer" parent="CenterContainer/FlowContainer/MarginContainer/Sliders/HeightmapOutput"]
+layout_mode = 2
+size_flags_vertical = 3
+theme_override_constants/margin_left = 0
+theme_override_constants/margin_top = 10
+theme_override_constants/margin_right = 0
+theme_override_constants/margin_bottom = 10
+
+[node name="AspectRatioContainer" type="AspectRatioContainer" parent="CenterContainer/FlowContainer/MarginContainer/Sliders/HeightmapOutput/MarginContainer"]
+layout_mode = 2
+
+[node name="HmapTextureRect" type="TextureRect" parent="CenterContainer/FlowContainer/MarginContainer/Sliders/HeightmapOutput/MarginContainer/AspectRatioContainer"]
+unique_name_in_owner = true
+layout_mode = 2
+
+[node name="AreasOverlay" type="Control" parent="CenterContainer/FlowContainer/MarginContainer/Sliders/HeightmapOutput/MarginContainer/AspectRatioContainer"]
+unique_name_in_owner = true
+visible = false
+layout_mode = 2
+script = ExtResource("2_rj5w7")
+
+[node name="Textures" type="Control" parent="CenterContainer/FlowContainer/MarginContainer/Sliders/HeightmapOutput/MarginContainer/AspectRatioContainer/AreasOverlay"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="VBoxContainer" type="VBoxContainer" parent="CenterContainer/FlowContainer/MarginContainer/Sliders/HeightmapOutput/MarginContainer/AspectRatioContainer/AreasOverlay"]
+custom_minimum_size = Vector2(30, 30)
+layout_mode = 2
+offset_right = 30.0
+offset_bottom = 30.0
+
+[node name="AspectRatioContainer" type="AspectRatioContainer" parent="CenterContainer/FlowContainer/MarginContainer/Sliders/HeightmapOutput"]
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="HBoxContainer" type="HBoxContainer" parent="CenterContainer/FlowContainer/MarginContainer/Sliders/HeightmapOutput/AspectRatioContainer"]
+layout_mode = 2
+
+[node name="GenerateButton" type="Button" parent="CenterContainer/FlowContainer/MarginContainer/Sliders/HeightmapOutput/AspectRatioContainer/HBoxContainer"]
+layout_mode = 2
+text = "Generate Heightmap
+"
+
+[node name="ExportButton" type="Button" parent="CenterContainer/FlowContainer/MarginContainer/Sliders/HeightmapOutput/AspectRatioContainer/HBoxContainer"]
+layout_mode = 2
+text = "Export as image"
+
+[node name="OptionButton" type="OptionButton" parent="CenterContainer/FlowContainer/MarginContainer/Sliders/HeightmapOutput/AspectRatioContainer/HBoxContainer"]
+layout_mode = 2
+item_count = 2
+popup/item_0/text = "PNG Image"
+popup/item_0/id = 0
+popup/item_1/text = "JPG Image"
+popup/item_1/id = 1
+
+[connection signal="value_changed" from="CenterContainer/FlowContainer/MarginContainer/Sliders/VBoxContainer/GenerationSeed/SeedSpinBox" to="." method="_on_seed_spin_box_value_changed"]
+[connection signal="value_changed" from="CenterContainer/FlowContainer/MarginContainer/Sliders/VBoxContainer/Tokens/TokensSpinBox" to="." method="_on_tokens_spin_box_value_changed"]
+[connection signal="value_changed" from="CenterContainer/FlowContainer/MarginContainer/Sliders/VBoxContainer/MoveSpeed/MoveSpeedMinSpinBox" to="." method="_on_move_speed_min_spin_box_value_changed"]
+[connection signal="value_changed" from="CenterContainer/FlowContainer/MarginContainer/Sliders/VBoxContainer/MoveSpeed/MoveSpeedMaxSpinBox" to="." method="_on_move_speed_max_spin_box_value_changed"]
+[connection signal="toggled" from="CenterContainer/FlowContainer/MarginContainer/Sliders/VBoxContainer/HBoxContainer/EffectAreaCheckButton" to="." method="_on_effect_area_check_button_toggled"]
+[connection signal="pressed" from="CenterContainer/FlowContainer/MarginContainer/Sliders/HeightmapOutput/AspectRatioContainer/HBoxContainer/GenerateButton" to="." method="_on_generate_button_pressed"]
+[connection signal="pressed" from="CenterContainer/FlowContainer/MarginContainer/Sliders/HeightmapOutput/AspectRatioContainer/HBoxContainer/ExportButton" to="." method="_on_export_button_pressed"]
+[connection signal="item_selected" from="CenterContainer/FlowContainer/MarginContainer/Sliders/HeightmapOutput/AspectRatioContainer/HBoxContainer/OptionButton" to="." method="_on_option_button_item_selected"]

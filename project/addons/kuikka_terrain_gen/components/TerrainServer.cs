@@ -4,10 +4,15 @@
  *	through related editor tab. Generation produces image file that can then be saved on disk or
  *	used as heightmap for supporting terrain.
  */
+
+// FIXME: Redone in GDscript as there is bug with calling C# class static
+// functions apparently present still in Godot 4.2 See #86256, #86972
+
 using Godot;
 using System;
 
 [Tool]
+//[GlobalClass]
 public partial class TerrainServer : Node
 {	
 	// Reference to singleton instance.
@@ -19,6 +24,7 @@ public partial class TerrainServer : Node
 		// Class should be singleton. Don't allow creating new instances if _instance is defined.
 		if (_instance != null) {
 			this.QueueFree();
+			return;
 		}
 		_instance = this;
 	}
@@ -32,17 +38,25 @@ public partial class TerrainServer : Node
 	public override void _Process(double delta)
 	{
 	}
-
+	
+	// Return singleton instance if present.
+	public static TerrainServer GetInstance()
+	{
+		return Instance;
+	}
 
 	// Main interface function for generating terrain. Returns generated heightmap as [Image].
-	public Image GenerateTerrain(int width, int height) {
-		Image heightmap = new Image();
-
-
-		return heightmap;
+	public ImageTexture GenerateTerrain(int width, int height) {
+		return GenerateTest(width, height);
 	}
 
 
 	// Generation functions
 
+	// Test generation
+	private ImageTexture GenerateTest(int width, int height) {
+		ImageTexture heightmap = new ImageTexture(); // = new NoiseTexture2D(width, height);
+
+		return heightmap;
+	}
 }

@@ -11,9 +11,17 @@ config_version=5
 [application]
 
 config/name="Kuikka Terrain Generator"
-config/features=PackedStringArray("4.2", "Forward Plus")
+config/features=PackedStringArray("4.2", "C#", "Forward Plus")
 config/icon="res://icon.svg"
+
+[autoload]
+
+KuikkaTerrainGen="*res://addons/kuikka_terrain_gen/components/terrain_server.gd"
 
 [dotnet]
 
 project/assembly_name="Kuikka Terrain Generator"
+
+[editor_plugins]
+
+enabled=PackedStringArray("res://addons/godot-sqlite/plugin.cfg", "res://addons/kuikka_terrain_gen/plugin.cfg", "res://addons/terrain_3d/plugin.cfg")
