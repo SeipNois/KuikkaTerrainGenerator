@@ -3,7 +3,7 @@ extends EditorPlugin
 
 
 func _enter_tree():
-	add_autoload_singleton("FFT", "res://addons/godot-fft/Fft.gd")
+	add_autoload_singleton("FFT", "res://addons/godot_fft/Fft.gd")
 
 
 func _exit_tree():

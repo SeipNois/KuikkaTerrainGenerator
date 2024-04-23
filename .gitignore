@@ -1,3 +1,6 @@
 # Godot 4+ specific ignores
 project/.godot/
 .vscode
+project/addons/kuikka_terrain_gen/debug/*
+project/addons/kuikka_terrain_gen/height_samples/*
+*.tmp

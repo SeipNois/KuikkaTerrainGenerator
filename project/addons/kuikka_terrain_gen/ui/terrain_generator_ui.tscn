@@ -1,13 +1,15 @@
-[gd_scene load_steps=3 format=3 uid="uid://dr8jxl8ojkoip"]
+[gd_scene load_steps=4 format=3 uid="uid://dr8jxl8ojkoip"]
 
 [ext_resource type="Script" path="res://addons/kuikka_terrain_gen/ui/terrain_generator_ui.gd" id="1_gw8ut"]
 [ext_resource type="Script" path="res://addons/kuikka_terrain_gen/ui/areas_ui_handler.gd" id="2_rj5w7"]
+[ext_resource type="Script" path="res://addons/kuikka_terrain_gen/ui/scroll_container_outline.gd" id="2_u717i"]
 
 [node name="TerrainGeneratorUI" type="Control"]
 layout_mode = 3
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
+anchor_right = 1.043
+anchor_bottom = 1.025
+offset_right = 0.463867
+offset_bottom = -0.200073
 grow_horizontal = 2
 grow_vertical = 2
 mouse_filter = 2
@@ -42,56 +44,176 @@ alignment = 1
 [node name="VBoxContainer" type="VBoxContainer" parent="CenterContainer/FlowContainer/MarginContainer/Sliders"]
 layout_mode = 2
 
-[node name="GenerationSeed" type="HBoxContainer" parent="CenterContainer/FlowContainer/MarginContainer/Sliders/VBoxContainer"]
+[node name="Label2" type="Label" parent="CenterContainer/FlowContainer/MarginContainer/Sliders/VBoxContainer"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 22
+text = "Common settings"
+
+[node name="ScrollContainer" type="ScrollContainer" parent="CenterContainer/FlowContainer/MarginContainer/Sliders/VBoxContainer"]
+custom_minimum_size = Vector2(0, 100)
 layout_mode = 2
 
-[node name="Label" type="Label" parent="CenterContainer/FlowContainer/MarginContainer/Sliders/VBoxContainer/GenerationSeed"]
+[node name="VBoxContainer" type="VBoxContainer" parent="CenterContainer/FlowContainer/MarginContainer/Sliders/VBoxContainer/ScrollContainer"]
+layout_mode = 2
+
+[node name="HBoxContainer" type="HBoxContainer" parent="CenterContainer/FlowContainer/MarginContainer/Sliders/VBoxContainer/ScrollContainer/VBoxContainer"]
+layout_mode = 2
+
+[node name="Label" type="Label" parent="CenterContainer/FlowContainer/MarginContainer/Sliders/VBoxContainer/ScrollContainer/VBoxContainer/HBoxContainer"]
+layout_mode = 2
+text = "Show effect areas"
+
+[node name="EffectAreaCheckButton" type="CheckButton" parent="CenterContainer/FlowContainer/MarginContainer/Sliders/VBoxContainer/ScrollContainer/VBoxContainer/HBoxContainer"]
+layout_mode = 2
+
+[node name="HBoxContainer5" type="HBoxContainer" parent="CenterContainer/FlowContainer/MarginContainer/Sliders/VBoxContainer/ScrollContainer/VBoxContainer"]
+layout_mode = 2
+
+[node name="Label" type="Label" parent="CenterContainer/FlowContainer/MarginContainer/Sliders/VBoxContainer/ScrollContainer/VBoxContainer/HBoxContainer5"]
+custom_minimum_size = Vector2(150, 0)
+layout_mode = 2
+text = "Begin height"
+
+[node name="HeightSpinBox" type="SpinBox" parent="CenterContainer/FlowContainer/MarginContainer/Sliders/VBoxContainer/ScrollContainer/VBoxContainer/HBoxContainer5"]
+layout_mode = 2
+max_value = 1.0
+step = 0.001
+value = 0.5
+
+[node name="GenerationSeed" type="HBoxContainer" parent="CenterContainer/FlowContainer/MarginContainer/Sliders/VBoxContainer/ScrollContainer/VBoxContainer"]
+layout_mode = 2
+
+[node name="Label" type="Label" parent="CenterContainer/FlowContainer/MarginContainer/Sliders/VBoxContainer/ScrollContainer/VBoxContainer/GenerationSeed"]
 custom_minimum_size = Vector2(150, 0)
 layout_mode = 2
 text = "Generation seed"
 
-[node name="SeedSpinBox" type="SpinBox" parent="CenterContainer/FlowContainer/MarginContainer/Sliders/VBoxContainer/GenerationSeed"]
+[node name="SeedSpinBox" type="SpinBox" parent="CenterContainer/FlowContainer/MarginContainer/Sliders/VBoxContainer/ScrollContainer/VBoxContainer/GenerationSeed"]
 layout_mode = 2
 rounded = true
 allow_greater = true
 
-[node name="Tokens" type="HBoxContainer" parent="CenterContainer/FlowContainer/MarginContainer/Sliders/VBoxContainer"]
+[node name="HSeparator" type="HSeparator" parent="CenterContainer/FlowContainer/MarginContainer/Sliders/VBoxContainer"]
 layout_mode = 2
 
-[node name="Label" type="Label" parent="CenterContainer/FlowContainer/MarginContainer/Sliders/VBoxContainer/Tokens"]
+[node name="Label" type="Label" parent="CenterContainer/FlowContainer/MarginContainer/Sliders/VBoxContainer"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 22
+text = "Agent generation options"
+
+[node name="AgentOptionsList" type="ScrollContainer" parent="CenterContainer/FlowContainer/MarginContainer/Sliders/VBoxContainer"]
+custom_minimum_size = Vector2(360, 160)
+layout_mode = 2
+script = ExtResource("2_u717i")
+
+[node name="AgentOptionContainer" type="VBoxContainer" parent="CenterContainer/FlowContainer/MarginContainer/Sliders/VBoxContainer/AgentOptionsList"]
+unique_name_in_owner = true
+layout_mode = 2
+
+[node name="HSeparator3" type="HSeparator" parent="CenterContainer/FlowContainer/MarginContainer/Sliders/VBoxContainer"]
+layout_mode = 2
+
+[node name="Label3" type="Label" parent="CenterContainer/FlowContainer/MarginContainer/Sliders/VBoxContainer"]
+custom_minimum_size = Vector2(160, 0)
+layout_mode = 2
+theme_override_font_sizes/font_size = 22
+text = "Genetic settings"
+
+[node name="ScrollContainer2" type="ScrollContainer" parent="CenterContainer/FlowContainer/MarginContainer/Sliders/VBoxContainer"]
+custom_minimum_size = Vector2(0, 100)
+layout_mode = 2
+
+[node name="VBoxContainer" type="VBoxContainer" parent="CenterContainer/FlowContainer/MarginContainer/Sliders/VBoxContainer/ScrollContainer2"]
+layout_mode = 2
+
+[node name="HBoxContainer4" type="HBoxContainer" parent="CenterContainer/FlowContainer/MarginContainer/Sliders/VBoxContainer/ScrollContainer2/VBoxContainer"]
+layout_mode = 2
+
+[node name="Label" type="Label" parent="CenterContainer/FlowContainer/MarginContainer/Sliders/VBoxContainer/ScrollContainer2/VBoxContainer/HBoxContainer4"]
+custom_minimum_size = Vector2(160, 0)
+layout_mode = 2
+text = "Sample Database
+"
+
+[node name="ImgSamplesPath" type="TextEdit" parent="CenterContainer/FlowContainer/MarginContainer/Sliders/VBoxContainer/ScrollContainer2/VBoxContainer/HBoxContainer4"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(160, 0)
+layout_mode = 2
+
+[node name="FileDialog" type="FileDialog" parent="CenterContainer/FlowContainer/MarginContainer/Sliders/VBoxContainer/ScrollContainer2/VBoxContainer/HBoxContainer4/ImgSamplesPath"]
+title = "Open a File"
+size = Vector2i(379, 159)
+ok_button_text = "Avaa"
+file_mode = 0
+use_native_dialog = true
+
+[node name="HBoxContainer2" type="HBoxContainer" parent="CenterContainer/FlowContainer/MarginContainer/Sliders/VBoxContainer/ScrollContainer2/VBoxContainer"]
+layout_mode = 2
+
+[node name="Label" type="Label" parent="CenterContainer/FlowContainer/MarginContainer/Sliders/VBoxContainer/ScrollContainer2/VBoxContainer/HBoxContainer2"]
+custom_minimum_size = Vector2(160, 0)
+layout_mode = 2
+text = "Generations"
+
+[node name="GenerationsSlider" type="SpinBox" parent="CenterContainer/FlowContainer/MarginContainer/Sliders/VBoxContainer/ScrollContainer2/VBoxContainer/HBoxContainer2"]
 custom_minimum_size = Vector2(150, 0)
 layout_mode = 2
-text = "Initial tokens"
+min_value = 1.0
+max_value = 15.0
+value = 1.0
 
-[node name="TokensSpinBox" type="SpinBox" parent="CenterContainer/FlowContainer/MarginContainer/Sliders/VBoxContainer/Tokens"]
-layout_mode = 2
-max_value = 1000.0
-value = 15.0
-
-[node name="MoveSpeed" type="HBoxContainer" parent="CenterContainer/FlowContainer/MarginContainer/Sliders/VBoxContainer"]
+[node name="HBoxContainer3" type="HBoxContainer" parent="CenterContainer/FlowContainer/MarginContainer/Sliders/VBoxContainer/ScrollContainer2/VBoxContainer"]
 layout_mode = 2
 
-[node name="Label" type="Label" parent="CenterContainer/FlowContainer/MarginContainer/Sliders/VBoxContainer/MoveSpeed"]
+[node name="Label" type="Label" parent="CenterContainer/FlowContainer/MarginContainer/Sliders/VBoxContainer/ScrollContainer2/VBoxContainer/HBoxContainer3"]
+custom_minimum_size = Vector2(160, 0)
+layout_mode = 2
+text = "Population size"
+
+[node name="PopulationSlider" type="SpinBox" parent="CenterContainer/FlowContainer/MarginContainer/Sliders/VBoxContainer/ScrollContainer2/VBoxContainer/HBoxContainer3"]
 custom_minimum_size = Vector2(150, 0)
 layout_mode = 2
-text = "Agent speed "
+min_value = 2.0
+max_value = 20.0
+value = 2.0
 
-[node name="MoveSpeedMinSpinBox" type="SpinBox" parent="CenterContainer/FlowContainer/MarginContainer/Sliders/VBoxContainer/MoveSpeed"]
+[node name="HBoxContainer5" type="HBoxContainer" parent="CenterContainer/FlowContainer/MarginContainer/Sliders/VBoxContainer/ScrollContainer2/VBoxContainer"]
 layout_mode = 2
+
+[node name="Label" type="Label" parent="CenterContainer/FlowContainer/MarginContainer/Sliders/VBoxContainer/ScrollContainer2/VBoxContainer/HBoxContainer5"]
+custom_minimum_size = Vector2(160, 0)
+layout_mode = 2
+text = "Height sample size"
+
+[node name="SampleSizeSpinBox" type="SpinBox" parent="CenterContainer/FlowContainer/MarginContainer/Sliders/VBoxContainer/ScrollContainer2/VBoxContainer/HBoxContainer5"]
+layout_mode = 2
+min_value = 300.0
+max_value = 1500.0
+value = 300.0
+
+[node name="HBoxContainer6" type="HBoxContainer" parent="CenterContainer/FlowContainer/MarginContainer/Sliders/VBoxContainer/ScrollContainer2/VBoxContainer"]
+layout_mode = 2
+
+[node name="Label" type="Label" parent="CenterContainer/FlowContainer/MarginContainer/Sliders/VBoxContainer/ScrollContainer2/VBoxContainer/HBoxContainer6"]
+custom_minimum_size = Vector2(160, 0)
+layout_mode = 2
+text = "Image pool size"
+
+[node name="ImagePoolSpinBox" type="SpinBox" parent="CenterContainer/FlowContainer/MarginContainer/Sliders/VBoxContainer/ScrollContainer2/VBoxContainer/HBoxContainer6"]
+layout_mode = 2
+min_value = 1.0
+max_value = 15.0
 value = 10.0
 
-[node name="MoveSpeedMaxSpinBox" type="SpinBox" parent="CenterContainer/FlowContainer/MarginContainer/Sliders/VBoxContainer/MoveSpeed"]
-layout_mode = 2
-value = 10.0
-
-[node name="HBoxContainer" type="HBoxContainer" parent="CenterContainer/FlowContainer/MarginContainer/Sliders/VBoxContainer"]
+[node name="HSeparator4" type="HSeparator" parent="CenterContainer/FlowContainer/MarginContainer/Sliders/VBoxContainer"]
 layout_mode = 2
 
-[node name="Label" type="Label" parent="CenterContainer/FlowContainer/MarginContainer/Sliders/VBoxContainer/HBoxContainer"]
+[node name="GeneticOptionsList" type="ScrollContainer" parent="CenterContainer/FlowContainer/MarginContainer/Sliders/VBoxContainer"]
+custom_minimum_size = Vector2(360, 160)
 layout_mode = 2
-text = "Show effect areas"
 
-[node name="EffectAreaCheckButton" type="CheckButton" parent="CenterContainer/FlowContainer/MarginContainer/Sliders/VBoxContainer/HBoxContainer"]
+[node name="GeneOptionContainer" type="VBoxContainer" parent="CenterContainer/FlowContainer/MarginContainer/Sliders/VBoxContainer/GeneticOptionsList"]
+unique_name_in_owner = true
 layout_mode = 2
 
 [node name="HeightmapOutput" type="VBoxContainer" parent="CenterContainer/FlowContainer/MarginContainer/Sliders"]
@@ -141,6 +263,14 @@ size_flags_vertical = 3
 [node name="HBoxContainer" type="HBoxContainer" parent="CenterContainer/FlowContainer/MarginContainer/Sliders/HeightmapOutput/AspectRatioContainer"]
 layout_mode = 2
 
+[node name="GenSamplesButton" type="Button" parent="CenterContainer/FlowContainer/MarginContainer/Sliders/HeightmapOutput/AspectRatioContainer/HBoxContainer"]
+layout_mode = 2
+text = "Generate sample database"
+
+[node name="SortHeightSamples" type="Button" parent="CenterContainer/FlowContainer/MarginContainer/Sliders/HeightmapOutput/AspectRatioContainer/HBoxContainer"]
+layout_mode = 2
+text = "Sort heightsamples"
+
 [node name="GenerateButton" type="Button" parent="CenterContainer/FlowContainer/MarginContainer/Sliders/HeightmapOutput/AspectRatioContainer/HBoxContainer"]
 layout_mode = 2
 text = "Generate Heightmap
@@ -158,11 +288,16 @@ popup/item_0/id = 0
 popup/item_1/text = "JPG Image"
 popup/item_1/id = 1
 
-[connection signal="value_changed" from="CenterContainer/FlowContainer/MarginContainer/Sliders/VBoxContainer/GenerationSeed/SeedSpinBox" to="." method="_on_seed_spin_box_value_changed"]
-[connection signal="value_changed" from="CenterContainer/FlowContainer/MarginContainer/Sliders/VBoxContainer/Tokens/TokensSpinBox" to="." method="_on_tokens_spin_box_value_changed"]
-[connection signal="value_changed" from="CenterContainer/FlowContainer/MarginContainer/Sliders/VBoxContainer/MoveSpeed/MoveSpeedMinSpinBox" to="." method="_on_move_speed_min_spin_box_value_changed"]
-[connection signal="value_changed" from="CenterContainer/FlowContainer/MarginContainer/Sliders/VBoxContainer/MoveSpeed/MoveSpeedMaxSpinBox" to="." method="_on_move_speed_max_spin_box_value_changed"]
-[connection signal="toggled" from="CenterContainer/FlowContainer/MarginContainer/Sliders/VBoxContainer/HBoxContainer/EffectAreaCheckButton" to="." method="_on_effect_area_check_button_toggled"]
+[connection signal="toggled" from="CenterContainer/FlowContainer/MarginContainer/Sliders/VBoxContainer/ScrollContainer/VBoxContainer/HBoxContainer/EffectAreaCheckButton" to="." method="_on_effect_area_check_button_toggled"]
+[connection signal="value_changed" from="CenterContainer/FlowContainer/MarginContainer/Sliders/VBoxContainer/ScrollContainer/VBoxContainer/HBoxContainer5/HeightSpinBox" to="." method="_on_height_spin_box_value_changed"]
+[connection signal="value_changed" from="CenterContainer/FlowContainer/MarginContainer/Sliders/VBoxContainer/ScrollContainer/VBoxContainer/GenerationSeed/SeedSpinBox" to="." method="_on_seed_spin_box_value_changed"]
+[connection signal="file_selected" from="CenterContainer/FlowContainer/MarginContainer/Sliders/VBoxContainer/ScrollContainer2/VBoxContainer/HBoxContainer4/ImgSamplesPath/FileDialog" to="." method="_on_file_dialog_file_selected"]
+[connection signal="value_changed" from="CenterContainer/FlowContainer/MarginContainer/Sliders/VBoxContainer/ScrollContainer2/VBoxContainer/HBoxContainer2/GenerationsSlider" to="." method="_on_generations_slider_value_changed"]
+[connection signal="value_changed" from="CenterContainer/FlowContainer/MarginContainer/Sliders/VBoxContainer/ScrollContainer2/VBoxContainer/HBoxContainer3/PopulationSlider" to="." method="_on_population_slider_value_changed"]
+[connection signal="value_changed" from="CenterContainer/FlowContainer/MarginContainer/Sliders/VBoxContainer/ScrollContainer2/VBoxContainer/HBoxContainer5/SampleSizeSpinBox" to="." method="_on_sample_size_spin_box_value_changed"]
+[connection signal="value_changed" from="CenterContainer/FlowContainer/MarginContainer/Sliders/VBoxContainer/ScrollContainer2/VBoxContainer/HBoxContainer6/ImagePoolSpinBox" to="." method="_on_image_pool_spin_box_value_changed"]
+[connection signal="pressed" from="CenterContainer/FlowContainer/MarginContainer/Sliders/HeightmapOutput/AspectRatioContainer/HBoxContainer/GenSamplesButton" to="." method="_on_gen_samples_button_pressed"]
+[connection signal="pressed" from="CenterContainer/FlowContainer/MarginContainer/Sliders/HeightmapOutput/AspectRatioContainer/HBoxContainer/SortHeightSamples" to="." method="_on_sort_height_samples_pressed"]
 [connection signal="pressed" from="CenterContainer/FlowContainer/MarginContainer/Sliders/HeightmapOutput/AspectRatioContainer/HBoxContainer/GenerateButton" to="." method="_on_generate_button_pressed"]
 [connection signal="pressed" from="CenterContainer/FlowContainer/MarginContainer/Sliders/HeightmapOutput/AspectRatioContainer/HBoxContainer/ExportButton" to="." method="_on_export_button_pressed"]
 [connection signal="item_selected" from="CenterContainer/FlowContainer/MarginContainer/Sliders/HeightmapOutput/AspectRatioContainer/HBoxContainer/OptionButton" to="." method="_on_option_button_item_selected"]

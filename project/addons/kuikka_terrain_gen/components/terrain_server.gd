@@ -13,7 +13,8 @@ class_name TerrainServerGD extends Node
 ## not loaded.)
 
 signal generation_step_completed
-signal generation_finished
+signal agent_generation_finished
+signal genetic_operations_finished
 
 var _instance: TerrainServerGD
 static var global_instance: TerrainServerGD
@@ -26,6 +27,8 @@ var heightmap : Image
 
 ## [Array] of [TerrainAgent] instances to use to generate terrain features.
 var agents : Array[KuikkaTerrainAgent]
+
+var evolution_handler : EvolutionHandler = EvolutionHandler.new()
 
 ## Agents that are actively editing terrain
 var _active_agents : Array[KuikkaTerrainAgent]
@@ -64,18 +67,34 @@ static func get_instance() -> TerrainServerGD:
 ## Generate terrain heightmap texture with 
 ## given [KuikkaTerrainGenParams] [param parameters].
 func generate_terrain(parameters: KuikkaTerrainGenParams) -> Array:
+	var _start_ticks = Time.get_ticks_msec()
+	print_debug("Started terrain generation ", _start_ticks)
+	
 	var result : Texture2D
-	print_debug("Starting terrain generation.")
-	_generate_heightmap(parameters)
+	await _generate_heightmap(parameters)
 	
 	# Wait for agent generation to finish
-	await generation_finished
-	print_debug(agent_areas)
-	print_debug("Terrain generation finished.")
+	# await agent_generation_finished
+	# print_debug(agent_areas)
+	# print_debug("Terrain generation finished.")
 		
 	result = ImageTexture.create_from_image(heightmap)
 	
+	var _end_ticks = Time.get_ticks_msec()
+	print_debug("Finished terrain generation ", _end_ticks, "\nTook: ",
+	str(_end_ticks-_start_ticks))
+	
 	return [result, agent_areas]
+
+
+## Update heightsamples sorting based on new parameters.
+func resort_height_samples(parameters: KuikkaTerrainGenParams):
+	evolution_handler.sort_height_samples(parameters)
+
+
+## Update heightsamples sorting based on new parameters.
+func update_height_sample_db(parameters: KuikkaTerrainGenParams):
+	evolution_handler.setup_database(parameters)
 
 
 func _generate_heightmap(parameters: KuikkaTerrainGenParams):
@@ -88,6 +107,18 @@ func _generate_heightmap(parameters: KuikkaTerrainGenParams):
 	
 	# Start generation for each agent to run in idle loop.
 	_start_agent_generation()
+	
+	# Wait for agent generation to finish
+	await agent_generation_finished
+	
+	# Setup genetic process
+	await _setup_evolution_process(parameters)
+	
+	_run_evolution_process(parameters)
+	
+	# Wait for genetic process to finish
+	await genetic_operations_finished
+	
 	return
 
 
@@ -96,13 +127,14 @@ func _start_agent_generation():
 	for agent in _active_agents:
 		agent.start_generation.call_deferred()
 	return
+	
 
 ## Setup agents for generating heightmap
 func _setup_agents(parameters: KuikkaTerrainGenParams, heightmap: Image):
 	rng.set_seed(parameters.generation_seed)
-	rng.set_state(0)
+	rng.set_state(parameters.generation_seed)
 	
-	print_debug(parameters.generation_seed, " ", rng.seed)
+	# print_debug(parameters.generation_seed, " ", rng.seed)
 	
 	# Create new agent instances
 	agents.clear()
@@ -124,18 +156,40 @@ func _setup_agents(parameters: KuikkaTerrainGenParams, heightmap: Image):
 		agent.generation_finished.connect(
 				(func(a): 
 					if a in _active_agents: 
-						print_debug("Agent ", a, "finished generation.")
+						# print_debug("Agent ", a, "finished generation.")
 						agent_areas[a.agent_type] = a.area_silhouette
 						_active_agents.erase(a)
 					# Consider finished if all agents have finished.
 					if _active_agents.size() == 0:
-						print_debug("Generation finished.")
-						generation_finished.emit()))
+						# print_debug("Generation finished.")
+						agent_generation_finished.emit()))
 	
 	# Start with every agent unfinished
 	_active_agents = agents
 	return
 
+
+## Setup rng settings, fitness references, chromosomes and height samples for
+## genetic generation process.
+func _setup_evolution_process(parameters: KuikkaTerrainGenParams):
+	evolution_handler.seed = parameters.generation_seed
+	evolution_handler.state = rng.randi()
+	
+	# Setup image samples and heightmap.
+	evolution_handler.setup_evolution_handler.call_deferred(parameters, heightmap)
+	await evolution_handler.setup_completed
+	
+	evolution_handler.initialize_populations.call_deferred(parameters, agent_areas)
+	await  evolution_handler.populations_generated
+	
+	evolution_handler.heightmap_completed.connect(func(hmap): genetic_operations_finished.emit())
+	return
+	
+
+func _run_evolution_process(parameters: KuikkaTerrainGenParams):
+	evolution_handler.run_evolution_process.call_deferred(parameters)
+	return
+	
 
 func _test_generate(parameters: KuikkaTerrainGenParams) -> Texture2D:
 	var hmap_texture = NoiseTexture2D.new()
@@ -146,3 +200,4 @@ func _test_generate(parameters: KuikkaTerrainGenParams) -> Texture2D:
 	# NoiseTexture2D runs threaded and may return empty if not awaited for.
 	await hmap_texture.changed
 	return hmap_texture
+

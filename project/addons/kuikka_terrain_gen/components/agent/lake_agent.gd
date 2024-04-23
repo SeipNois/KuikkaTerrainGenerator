@@ -2,11 +2,9 @@ class_name KuikkaLakeAgent extends KuikkaTerrainAgent
 
 ## Agent that creates lakes, ponds and bodies of water.
 
-## Offset for blending brush rect centered around point.
-var offset = Vector2i(brush_size/2, brush_size/2)
 
 ## Agent specific parameter collection for generation features.
-var parameters : KuikkaLakeParameters
+# var parameters : KuikkaLakeParameters
 
 var start_position: Vector2i = Vector2i.ZERO
 var last_position: Vector2i = Vector2i.ZERO
@@ -23,8 +21,14 @@ func _generation_process():
 		heightmap.blend_rect(brush,
 							brush.get_used_rect(), 
 							last_position-offset)
+		gene_mask.blend_rect(brush,
+					brush.get_used_rect(), 
+					last_position-offset)
 	
-	area_silhouette["agent_travel"][-1].add_point(last_position)
+	area_silhouette.agent_travel[-1].add_point(last_position)
+	
+	# Add to covered area to silhouette.
+	# _append_covered_points(last_position, offset)
 	
 	# Get next position, round new position to pixels.
 	var speed = rng.randi_range(parameters.move_speed.x, parameters.move_speed.y)
@@ -44,7 +48,7 @@ func _generation_process():
 		last_position = Vector2i(rng.randi_range(offset.x, heightmap.get_width()-offset.x),
 								rng.randi_range(offset.y, heightmap.get_height()-offset.y))
 		# Add new curve when starting from new position.
-		area_silhouette["agent_travel"].append(Curve2D.new())
+		area_silhouette.agent_travel.append(Curve2D.new())
 	
 	tokens -= 1
 
@@ -57,20 +61,22 @@ func start_generation():
 	rng.set_state(state)
 	_load_brush()
 	
+	gene_mask = Image.create(heightmap.get_width(), heightmap.get_height(), false, heightmap.get_format())
+	
 	start_position = Vector2i(rng.randi_range(offset.x, heightmap.get_width()-offset.x),
 								rng.randi_range(offset.y, heightmap.get_height()-offset.y))
 	last_position = start_position
 	move_direction = Vector2i(rng.randi_range(-1, 1),
 								rng.randi_range(-1, 1))
 	
-	area_silhouette["agent_travel"].append(Curve2D.new())
+	area_silhouette.agent_travel.append(Curve2D.new())
 	
 	# Start generation.
 	super.start_generation()
 
 
 func _load_brush():
-	brush = Image.load_from_file("res://addons/kuikka_terrain_gen/brushes/128_gaussian.png")
+	brush = preload("res://addons/kuikka_terrain_gen/brushes/128_gaussian.png").get_image()
 	brush.resize(brush_size, brush_size)
 	
 	# Flip brush to black for lakes

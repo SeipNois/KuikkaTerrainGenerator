@@ -16,7 +16,10 @@ config/icon="res://icon.svg"
 
 [autoload]
 
+GDALUtils="*res://addons/kuikka_terrain_gen/external_bindings/gdal_functions.gd"
+FFT="*res://addons/godot_fft/Fft.gd"
 KuikkaTerrainGen="*res://addons/kuikka_terrain_gen/components/terrain_server.gd"
+KuikkaTimer="*res://addons/kuikka_terrain_gen/util/global_timer.tscn"
 
 [dotnet]
 
@@ -24,4 +27,4 @@ project/assembly_name="Kuikka Terrain Generator"
 
 [editor_plugins]
 
-enabled=PackedStringArray("res://addons/godot-sqlite/plugin.cfg", "res://addons/kuikka_terrain_gen/plugin.cfg", "res://addons/terrain_3d/plugin.cfg")
+enabled=PackedStringArray("res://addons/godot_fft/plugin.cfg", "res://addons/kuikka_terrain_gen/plugin.cfg", "res://addons/terrain_3d/plugin.cfg")

@@ -1,0 +1,133 @@
+[gd_scene load_steps=2 format=3 uid="uid://bmwdj2m5xhcg3"]
+
+[ext_resource type="Script" path="res://addons/kuikka_terrain_gen/ui/agent_options_ui.gd" id="1_e4nsf"]
+
+[node name="CenterContainer" type="CenterContainer"]
+custom_minimum_size = Vector2(360, 160)
+anchors_preset = -1
+anchor_right = 0.314
+anchor_bottom = 0.323
+offset_top = -0.5
+offset_right = 0.271973
+offset_bottom = 0.195984
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_e4nsf")
+
+[node name="MarginContainer" type="MarginContainer" parent="."]
+layout_mode = 2
+theme_override_constants/margin_left = 5
+theme_override_constants/margin_top = 5
+theme_override_constants/margin_right = 5
+theme_override_constants/margin_bottom = 5
+
+[node name="Panel" type="Panel" parent="MarginContainer"]
+custom_minimum_size = Vector2(350, 200)
+layout_mode = 2
+
+[node name="MarginContainer" type="MarginContainer" parent="MarginContainer/Panel"]
+layout_mode = 1
+anchors_preset = -1
+anchor_left = -0.003
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 0.05
+offset_right = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/margin_left = 10
+theme_override_constants/margin_right = 10
+
+[node name="AgentOptions" type="VBoxContainer" parent="MarginContainer/Panel/MarginContainer"]
+layout_mode = 2
+
+[node name="Title" type="Label" parent="MarginContainer/Panel/MarginContainer/AgentOptions"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "AGENT"
+
+[node name="Tokens" type="HBoxContainer" parent="MarginContainer/Panel/MarginContainer/AgentOptions"]
+layout_mode = 2
+
+[node name="Label" type="Label" parent="MarginContainer/Panel/MarginContainer/AgentOptions/Tokens"]
+custom_minimum_size = Vector2(170, 0)
+layout_mode = 2
+text = "Initial tokens"
+
+[node name="TokensSpinBox" type="SpinBox" parent="MarginContainer/Panel/MarginContainer/AgentOptions/Tokens"]
+layout_mode = 2
+max_value = 1000.0
+value = 15.0
+
+[node name="MoveSpeed" type="HBoxContainer" parent="MarginContainer/Panel/MarginContainer/AgentOptions"]
+layout_mode = 2
+
+[node name="Label" type="Label" parent="MarginContainer/Panel/MarginContainer/AgentOptions/MoveSpeed"]
+custom_minimum_size = Vector2(170, 0)
+layout_mode = 2
+text = "Agent speed "
+
+[node name="MoveSpeedMinSpinBox" type="SpinBox" parent="MarginContainer/Panel/MarginContainer/AgentOptions/MoveSpeed"]
+layout_mode = 2
+value = 10.0
+
+[node name="MoveSpeedMaxSpinBox" type="SpinBox" parent="MarginContainer/Panel/MarginContainer/AgentOptions/MoveSpeed"]
+layout_mode = 2
+value = 10.0
+
+[node name="JumpTreshold" type="HBoxContainer" parent="MarginContainer/Panel/MarginContainer/AgentOptions"]
+layout_mode = 2
+
+[node name="Label" type="Label" parent="MarginContainer/Panel/MarginContainer/AgentOptions/JumpTreshold"]
+custom_minimum_size = Vector2(170, 0)
+layout_mode = 2
+text = "Jump Treshold"
+
+[node name="JumpSpinBox" type="SpinBox" parent="MarginContainer/Panel/MarginContainer/AgentOptions/JumpTreshold"]
+layout_mode = 2
+max_value = 1.0
+step = 0.01
+value = 0.1
+
+[node name="GenTreshold" type="HBoxContainer" parent="MarginContainer/Panel/MarginContainer/AgentOptions"]
+layout_mode = 2
+
+[node name="Label" type="Label" parent="MarginContainer/Panel/MarginContainer/AgentOptions/GenTreshold"]
+custom_minimum_size = Vector2(170, 0)
+layout_mode = 2
+text = "Generation Treshold"
+
+[node name="GenTreshSpinBox" type="SpinBox" parent="MarginContainer/Panel/MarginContainer/AgentOptions/GenTreshold"]
+layout_mode = 2
+max_value = 1.0
+step = 0.01
+value = 0.5
+
+[node name="GeneDist" type="HBoxContainer" parent="MarginContainer/Panel/MarginContainer/AgentOptions"]
+layout_mode = 2
+
+[node name="Label" type="Label" parent="MarginContainer/Panel/MarginContainer/AgentOptions/GeneDist"]
+custom_minimum_size = Vector2(170, 0)
+layout_mode = 2
+text = "Gene DistributionType"
+
+[node name="OptionButton" type="OptionButton" parent="MarginContainer/Panel/MarginContainer/AgentOptions/GeneDist"]
+layout_mode = 2
+item_count = 3
+selected = 0
+popup/item_0/text = "RECT"
+popup/item_0/id = 0
+popup/item_1/text = "DELAUNAY"
+popup/item_1/id = 1
+popup/item_2/text = "CONCAVE"
+popup/item_2/id = 2
+
+[node name="HSeparator" type="HSeparator" parent="MarginContainer/Panel/MarginContainer/AgentOptions"]
+layout_mode = 2
+
+[connection signal="value_changed" from="MarginContainer/Panel/MarginContainer/AgentOptions/Tokens/TokensSpinBox" to="." method="_on_tokens_spin_box_value_changed"]
+[connection signal="value_changed" from="MarginContainer/Panel/MarginContainer/AgentOptions/MoveSpeed/MoveSpeedMinSpinBox" to="." method="_on_move_speed_min_spin_box_value_changed"]
+[connection signal="value_changed" from="MarginContainer/Panel/MarginContainer/AgentOptions/MoveSpeed/MoveSpeedMaxSpinBox" to="." method="_on_move_speed_max_spin_box_value_changed"]
+[connection signal="value_changed" from="MarginContainer/Panel/MarginContainer/AgentOptions/JumpTreshold/JumpSpinBox" to="." method="_on_jump_spin_box_value_changed"]
+[connection signal="value_changed" from="MarginContainer/Panel/MarginContainer/AgentOptions/GenTreshold/GenTreshSpinBox" to="." method="_on_gen_tresh_spin_box_value_changed"]
+[connection signal="item_selected" from="MarginContainer/Panel/MarginContainer/AgentOptions/GeneDist/OptionButton" to="." method="_on_option_button_item_selected"]

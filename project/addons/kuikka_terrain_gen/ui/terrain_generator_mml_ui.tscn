@@ -1,0 +1,108 @@
+[gd_scene load_steps=4 format=3 uid="uid://bbvyjtr37rsg8"]
+
+[ext_resource type="Script" path="res://addons/kuikka_terrain_gen/ui/terrain_generator_mml_ui.gd" id="1_8jyb3"]
+[ext_resource type="Script" path="res://addons/kuikka_terrain_gen/ui/areas_ui_handler.gd" id="2_odsjw"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_3khto"]
+bg_color = Color(0.270588, 0.309804, 0.372549, 1)
+border_width_left = 4
+border_width_top = 4
+border_color = Color(0.141176, 0.180392, 0.227451, 1)
+
+[node name="TerrainGeneratorMML" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_8jyb3")
+
+[node name="CenterContainer" type="CenterContainer" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="HSplitContainer" type="HSplitContainer" parent="CenterContainer"]
+layout_mode = 2
+
+[node name="LeftSide" type="CenterContainer" parent="CenterContainer/HSplitContainer"]
+layout_mode = 2
+
+[node name="VBoxContainer" type="VBoxContainer" parent="CenterContainer/HSplitContainer/LeftSide"]
+layout_mode = 2
+
+[node name="RightSide" type="CenterContainer" parent="CenterContainer/HSplitContainer"]
+layout_mode = 2
+
+[node name="HeightmapOutput" type="VBoxContainer" parent="CenterContainer/HSplitContainer/RightSide"]
+layout_mode = 2
+
+[node name="MarginContainer" type="MarginContainer" parent="CenterContainer/HSplitContainer/RightSide/HeightmapOutput"]
+layout_mode = 2
+size_flags_vertical = 3
+theme_override_constants/margin_left = 0
+theme_override_constants/margin_top = 10
+theme_override_constants/margin_right = 0
+theme_override_constants/margin_bottom = 10
+
+[node name="AspectRatioContainer" type="AspectRatioContainer" parent="CenterContainer/HSplitContainer/RightSide/HeightmapOutput/MarginContainer"]
+layout_mode = 2
+
+[node name="Panel" type="Panel" parent="CenterContainer/HSplitContainer/RightSide/HeightmapOutput/MarginContainer/AspectRatioContainer"]
+self_modulate = Color(0.247059, 0.309804, 0.52549, 0.431373)
+layout_mode = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_3khto")
+
+[node name="HmapTextureRect" type="TextureRect" parent="CenterContainer/HSplitContainer/RightSide/HeightmapOutput/MarginContainer/AspectRatioContainer"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(512, 512)
+layout_mode = 2
+
+[node name="AreasOverlay" type="Control" parent="CenterContainer/HSplitContainer/RightSide/HeightmapOutput/MarginContainer/AspectRatioContainer"]
+unique_name_in_owner = true
+visible = false
+custom_minimum_size = Vector2(512, 512)
+layout_mode = 2
+script = ExtResource("2_odsjw")
+
+[node name="Textures" type="Control" parent="CenterContainer/HSplitContainer/RightSide/HeightmapOutput/MarginContainer/AspectRatioContainer/AreasOverlay"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="VBoxContainer" type="VBoxContainer" parent="CenterContainer/HSplitContainer/RightSide/HeightmapOutput/MarginContainer/AspectRatioContainer/AreasOverlay"]
+custom_minimum_size = Vector2(30, 30)
+layout_mode = 2
+offset_right = 30.0
+offset_bottom = 30.0
+
+[node name="AspectRatioContainer" type="AspectRatioContainer" parent="CenterContainer/HSplitContainer/RightSide/HeightmapOutput"]
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="HBoxContainer" type="HBoxContainer" parent="CenterContainer/HSplitContainer/RightSide/HeightmapOutput/AspectRatioContainer"]
+layout_mode = 2
+
+[node name="GenerateButton" type="Button" parent="CenterContainer/HSplitContainer/RightSide/HeightmapOutput/AspectRatioContainer/HBoxContainer"]
+layout_mode = 2
+text = "Generate Heightmap
+"
+
+[node name="ExportButton" type="Button" parent="CenterContainer/HSplitContainer/RightSide/HeightmapOutput/AspectRatioContainer/HBoxContainer"]
+layout_mode = 2
+text = "Export as image"
+
+[node name="OptionButton" type="OptionButton" parent="CenterContainer/HSplitContainer/RightSide/HeightmapOutput/AspectRatioContainer/HBoxContainer"]
+layout_mode = 2
+item_count = 2
+popup/item_0/text = "PNG Image"
+popup/item_0/id = 0
+popup/item_1/text = "JPG Image"
+popup/item_1/id = 1

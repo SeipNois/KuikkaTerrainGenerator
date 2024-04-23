@@ -1,0 +1,93 @@
+[gd_scene load_steps=3 format=3 uid="uid://mk8qr1ly6lys"]
+
+[ext_resource type="Script" path="res://addons/kuikka_terrain_gen/editor/image_fetch_debug_ui.gd" id="1_4g17m"]
+[ext_resource type="Script" path="res://addons/kuikka_terrain_gen/editor/SelectDialog.gd" id="2_elw1l"]
+
+[node name="ImageFetch" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_4g17m")
+metadata/_edit_vertical_guides_ = [-217.0]
+
+[node name="CenterContainer" type="CenterContainer" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="HBoxContainer" type="HBoxContainer" parent="CenterContainer"]
+layout_mode = 2
+
+[node name="VBoxContainer" type="VBoxContainer" parent="CenterContainer/HBoxContainer"]
+layout_mode = 2
+
+[node name="Sources" type="TextEdit" parent="CenterContainer/HBoxContainer/VBoxContainer"]
+custom_minimum_size = Vector2(0, 30)
+layout_mode = 2
+
+[node name="SelectSourceBtn" type="Button" parent="CenterContainer/HBoxContainer/VBoxContainer"]
+layout_mode = 2
+text = "Select Source Images
+"
+script = ExtResource("2_elw1l")
+
+[node name="FileDialog" type="FileDialog" parent="CenterContainer/HBoxContainer/VBoxContainer/SelectSourceBtn"]
+title = "Open File(s)"
+size = Vector2i(441, 159)
+ok_button_text = "Avaa"
+file_mode = 1
+access = 2
+use_native_dialog = true
+
+[node name="Destination" type="TextEdit" parent="CenterContainer/HBoxContainer/VBoxContainer"]
+custom_minimum_size = Vector2(0, 30)
+layout_mode = 2
+
+[node name="SelectDestinationBtn" type="Button" parent="CenterContainer/HBoxContainer/VBoxContainer"]
+layout_mode = 2
+text = "Select Output Directory"
+script = ExtResource("2_elw1l")
+
+[node name="FileDialog" type="FileDialog" parent="CenterContainer/HBoxContainer/VBoxContainer/SelectDestinationBtn"]
+title = "Open a Directory"
+size = Vector2i(441, 159)
+ok_button_text = "Valitse nykyinen kansio"
+file_mode = 2
+access = 2
+use_native_dialog = true
+
+[node name="ImageFormatOption" type="OptionButton" parent="CenterContainer/HBoxContainer/VBoxContainer"]
+unique_name_in_owner = true
+layout_mode = 2
+
+[node name="ConvertImagesButton" type="Button" parent="CenterContainer/HBoxContainer/VBoxContainer"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Convert terrain images"
+
+[node name="VBoxContainer2" type="VBoxContainer" parent="CenterContainer/HBoxContainer"]
+layout_mode = 2
+
+[node name="TextureRect" type="TextureRect" parent="CenterContainer/HBoxContainer/VBoxContainer2"]
+custom_minimum_size = Vector2(150, 150)
+layout_mode = 2
+
+[node name="CalculateImagesFFT" type="Button" parent="CenterContainer/HBoxContainer/VBoxContainer2"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Calculate FFT"
+
+[connection signal="pressed" from="CenterContainer/HBoxContainer/VBoxContainer/SelectSourceBtn" to="CenterContainer/HBoxContainer/VBoxContainer/SelectSourceBtn" method="_on_pressed"]
+[connection signal="files_selected" from="CenterContainer/HBoxContainer/VBoxContainer/SelectSourceBtn/FileDialog" to="." method="_on_file_dialog_source_files_selected"]
+[connection signal="pressed" from="CenterContainer/HBoxContainer/VBoxContainer/SelectDestinationBtn" to="CenterContainer/HBoxContainer/VBoxContainer/SelectDestinationBtn" method="_on_pressed"]
+[connection signal="dir_selected" from="CenterContainer/HBoxContainer/VBoxContainer/SelectDestinationBtn/FileDialog" to="." method="_on_file_dialog_destination_dir_selected"]
+[connection signal="item_selected" from="CenterContainer/HBoxContainer/VBoxContainer/ImageFormatOption" to="." method="_on_image_format_option_item_selected"]
+[connection signal="pressed" from="CenterContainer/HBoxContainer/VBoxContainer/ConvertImagesButton" to="." method="_on_button_pressed"]
+[connection signal="pressed" from="CenterContainer/HBoxContainer/VBoxContainer/ConvertImagesButton" to="." method="_on_convert_images_button_pressed"]
+[connection signal="pressed" from="CenterContainer/HBoxContainer/VBoxContainer2/CalculateImagesFFT" to="." method="_on_calculate_images_fft_pressed"]

@@ -1,0 +1,98 @@
+[gd_scene load_steps=4 format=3 uid="uid://3nlqq35wieti"]
+
+[ext_resource type="Script" path="res://addons/kuikka_terrain_gen/editor/value_range.gd" id="1_e5hbh"]
+[ext_resource type="Script" path="res://addons/kuikka_terrain_gen/ui/agent_fitness_settings.gd" id="1_xpu85"]
+[ext_resource type="Script" path="res://addons/kuikka_terrain_gen/editor/clamped_hslider.gd" id="3_mvdpk"]
+
+[node name="MarginContainer" type="MarginContainer"]
+custom_minimum_size = Vector2(360, 150)
+anchors_preset = -1
+anchor_right = 0.322
+anchor_bottom = 0.281
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/margin_left = 15
+theme_override_constants/margin_top = 15
+theme_override_constants/margin_right = 15
+theme_override_constants/margin_bottom = 15
+script = ExtResource("1_xpu85")
+
+[node name="AgentFitnessSettings" type="VBoxContainer" parent="."]
+layout_mode = 2
+
+[node name="Title" type="Label" parent="AgentFitnessSettings"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Agent Fitness"
+
+[node name="HeightRangeSetting" type="HBoxContainer" parent="AgentFitnessSettings"]
+layout_mode = 2
+
+[node name="Label" type="Label" parent="AgentFitnessSettings/HeightRangeSetting"]
+custom_minimum_size = Vector2(120, 0)
+layout_mode = 2
+text = "Height Range"
+
+[node name="HeightRange" type="Node" parent="AgentFitnessSettings/HeightRangeSetting" node_paths=PackedStringArray("min_val", "max_val")]
+script = ExtResource("1_e5hbh")
+min_val = NodePath("../MinValue")
+max_val = NodePath("../MaxValue")
+
+[node name="MinValue" type="SpinBox" parent="AgentFitnessSettings/HeightRangeSetting"]
+layout_mode = 2
+max_value = 1.0
+step = 0.01
+
+[node name="MaxValue" type="SpinBox" parent="AgentFitnessSettings/HeightRangeSetting"]
+layout_mode = 2
+max_value = 1.0
+step = 0.01
+
+[node name="MeanSetting" type="HBoxContainer" parent="AgentFitnessSettings"]
+layout_mode = 2
+
+[node name="Label" type="Label" parent="AgentFitnessSettings/MeanSetting"]
+custom_minimum_size = Vector2(120, 0)
+layout_mode = 2
+text = "Mean"
+
+[node name="MeanSpinBox" type="SpinBox" parent="AgentFitnessSettings/MeanSetting"]
+layout_mode = 2
+max_value = 1.0
+step = 0.001
+script = ExtResource("3_mvdpk")
+
+[node name="VarianceSetting" type="HBoxContainer" parent="AgentFitnessSettings"]
+layout_mode = 2
+
+[node name="Label" type="Label" parent="AgentFitnessSettings/VarianceSetting"]
+custom_minimum_size = Vector2(120, 0)
+layout_mode = 2
+text = "Variance"
+
+[node name="VarianceSpinBox" type="SpinBox" parent="AgentFitnessSettings/VarianceSetting"]
+layout_mode = 2
+max_value = 1.0
+step = 0.001
+
+[node name="FrequencySetting" type="HBoxContainer" parent="AgentFitnessSettings"]
+layout_mode = 2
+
+[node name="Label" type="Label" parent="AgentFitnessSettings/FrequencySetting"]
+custom_minimum_size = Vector2(120, 0)
+layout_mode = 2
+text = "Hill Frequency"
+
+[node name="HSliderFrequency" type="HSlider" parent="AgentFitnessSettings/FrequencySetting"]
+custom_minimum_size = Vector2(150, 0)
+layout_mode = 2
+
+[connection signal="value_changed" from="AgentFitnessSettings/HeightRangeSetting/MinValue" to="." method="_on_minvalue_value_changed"]
+[connection signal="value_changed" from="AgentFitnessSettings/HeightRangeSetting/MinValue" to="AgentFitnessSettings/HeightRangeSetting/HeightRange" method="_on_minvalue_value_changed"]
+[connection signal="value_changed" from="AgentFitnessSettings/HeightRangeSetting/MinValue" to="AgentFitnessSettings/MeanSetting/MeanSpinBox" method="_on_min_value_value_changed"]
+[connection signal="value_changed" from="AgentFitnessSettings/HeightRangeSetting/MaxValue" to="." method="_on_max_value_value_changed"]
+[connection signal="value_changed" from="AgentFitnessSettings/HeightRangeSetting/MaxValue" to="AgentFitnessSettings/HeightRangeSetting/HeightRange" method="_on_max_value_value_changed"]
+[connection signal="value_changed" from="AgentFitnessSettings/HeightRangeSetting/MaxValue" to="AgentFitnessSettings/MeanSetting/MeanSpinBox" method="_on_max_value_value_changed"]
+[connection signal="value_changed" from="AgentFitnessSettings/MeanSetting/MeanSpinBox" to="." method="_on_mean_spin_box_value_changed"]
+[connection signal="value_changed" from="AgentFitnessSettings/VarianceSetting/VarianceSpinBox" to="." method="_on_variance_spin_box_value_changed"]
+[connection signal="value_changed" from="AgentFitnessSettings/FrequencySetting/HSliderFrequency" to="." method="_on_h_slider_frequency_value_changed"]

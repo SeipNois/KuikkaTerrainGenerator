@@ -7,6 +7,9 @@ extends EditorPlugin
 var singleton_name : String = "KuikkaTerrainGen"
 var singleton_script : String = "res://addons/kuikka_terrain_gen/components/terrain_server.gd"
 
+var timer_singleton_name : String = "KuikkaTimer"
+var timer_singleton_script : String = "res://addons/kuikka_terrain_gen/util/global_timer.tscn"
+
 const editor_ui_scene : PackedScene = preload("res://addons/kuikka_terrain_gen/ui/terrain_generator_ui.tscn")
 
 # Main panel ui instance
@@ -16,6 +19,8 @@ var _editor_ui : Control
 ## Add components / enable plugin
 func _enter_tree():
 	add_autoload_singleton(singleton_name, singleton_script)
+	add_autoload_singleton(timer_singleton_name, timer_singleton_script)
+	generate_settings()
 	
 	if Engine.is_editor_hint():
 		# FIXME: Implement better alignment in main screen for UI.
@@ -30,9 +35,10 @@ func _enter_tree():
 ## Remove components / disable plugin
 func _exit_tree():
 	remove_autoload_singleton(singleton_name)
+	remove_autoload_singleton(timer_singleton_name)
 	if _editor_ui:
 		_editor_ui.queue_free()
-
+	clear_settings()
 
 func _has_main_screen():
 	# return true
@@ -50,3 +56,37 @@ func _get_plugin_name():
 
 func _get_plugin_icon():
 	return EditorInterface.get_editor_theme().get_icon("Node", "EditorIcons")
+
+
+## Generate settings for terrain generator plugin
+func generate_settings():
+	add_custom_project_setting("kuikka_terrain_gen/gdal_path", "res://addons/kuikka_terrain_gen/gdal", 4, PROPERTY_HINT_FILE, "Path to gdal executables")
+	
+	var error = ProjectSettings.save()
+	if error: printerr("Error saving project settings: ", error)
+
+func add_custom_project_setting(name: String, default_value, type: int, hint: int = PROPERTY_HINT_NONE, hint_string: String = "") -> void:
+
+	if ProjectSettings.has_setting(name): return
+
+	var setting_info: Dictionary = {
+		"name": name,
+		"type": type,
+		"hint": hint,
+		"hint_string": hint_string
+	}
+
+	ProjectSettings.set_setting(name, default_value)
+	ProjectSettings.add_property_info(setting_info)
+	ProjectSettings.set_initial_value(name, default_value)
+
+
+func clear_settings():
+	remove_custom_project_setting("kuikka_terrain_gen/gdal_path")
+	
+	var error = ProjectSettings.save()
+	if error: printerr("Error saving project settings: ", error)
+
+func remove_custom_project_setting(name: String):
+	if ProjectSettings.has_setting(name):
+		ProjectSettings.set_setting(name, null)
