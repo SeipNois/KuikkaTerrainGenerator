@@ -11,7 +11,7 @@ var conversion_format : int = 0
 # Called when the node enters the scene tree for the first time.
 func _ready():
 	
-	for item in GDALUtils.ImgFormat.keys():
+	for item in GdalUtils.ImgFormat.keys():
 		format_select.add_item(item)
 
 
@@ -37,7 +37,7 @@ func _on_convert_images_button_pressed():
 	
 	convert_image_btn.disabled = true
 	
-	GDALUtils.gdal_translate_batch(convert_source, convert_destination, conversion_format)
+	KuikkaImgUtil.gdal_translate_batch(convert_source, convert_destination, conversion_format)
 	
 	convert_image_btn.disabled = false
 

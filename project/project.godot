@@ -16,10 +16,7 @@ config/icon="res://icon.svg"
 
 [autoload]
 
-GDALUtils="*res://addons/kuikka_terrain_gen/external_bindings/gdal_functions.gd"
 FFT="*res://addons/godot_fft/Fft.gd"
-KuikkaTerrainGen="*res://addons/kuikka_terrain_gen/components/terrain_server.gd"
-KuikkaTimer="*res://addons/kuikka_terrain_gen/util/global_timer.tscn"
 
 [dotnet]
 

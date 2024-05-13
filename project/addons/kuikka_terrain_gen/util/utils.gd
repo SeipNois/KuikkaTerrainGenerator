@@ -20,7 +20,7 @@ static func mean(values : Array):
 	values.reduce(func(sum, n): return sum + n, sum)
 	if values.size() == 0:
 		return 0
-	return sum / values.size()
+	return sum / values.size()	
 
 
 ## Returns all non overlapping points for array of GDDelaunay [Delaunay.Triangle]s.
@@ -156,3 +156,17 @@ static func image_mult_alpha(img: Image, mult: float) -> Image:
 		color.a = color.a * mult
 		img.set_pixel(x, y, color)
 	return img
+	
+	
+## Similar to [method Array.filter] but returns the first
+## item in array that fulfills given condition.
+## [param array] [Array] to search
+## [param condition] [Callable] Condition that called with array item
+## 								should return true or false based on
+##								condition fullfilment by item.
+static func array_find_first(array: Array, condition: Callable):
+	for item in array:
+		if condition.call(item):
+			return item
+	
+	return null

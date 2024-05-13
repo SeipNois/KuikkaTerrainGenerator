@@ -19,6 +19,9 @@ signal genetic_operations_finished
 var _instance: TerrainServerGD
 static var global_instance: TerrainServerGD
 
+@export var terrain_parser : TerrainParser
+var terrain_image : TerrainFeatureImage
+
 ## RNG to set starting states for different agent RNGs in deterministic way.
 var rng : RandomNumberGenerator = RandomNumberGenerator.new()
 
@@ -87,6 +90,26 @@ func generate_terrain(parameters: KuikkaTerrainGenParams) -> Array:
 	return [result, agent_areas]
 
 
+## Generate terrain using heightmaps and gml formatted feature data of
+## certain region as reference.
+func generate_terrain_from_reference(heightmaps: Array, gml: Array, parameters: ImageGenParams):
+	# Create reference TerrainImage
+	heightmap = Image.create(parameters.width, 
+						parameters.height,
+						false,
+						parameters.image_format)
+	heightmap.fill(parameters.start_level)
+	
+	terrain_image = terrain_parser.parse_data(heightmaps, gml)
+	terrain_image.generation_seed = parameters.seed
+	rng.set_seed(parameters.seed)
+	rng.set_state(parameters.seed)
+	
+	
+	# Run agent generation process.
+	_setup_agents_image(terrain_image, heightmap)
+	
+
 ## Update heightsamples sorting based on new parameters.
 func resort_height_samples(parameters: KuikkaTerrainGenParams):
 	evolution_handler.sort_height_samples(parameters)
@@ -127,6 +150,44 @@ func _start_agent_generation():
 	for agent in _active_agents:
 		agent.start_generation.call_deferred()
 	return
+
+
+## Setup agents using parameters saved as TerrainFeatureImage.
+func _setup_agents_image(terrain_image: TerrainFeatureImage, heightmap: Image):
+	rng.set_seed(terrain_image.generation_seed)
+	rng.set_state(terrain_image.generation_seed)
+	
+	# print_debug(parameters.generation_seed, " ", rng.seed)
+	
+	# Create new agent instances
+	agents.clear()
+	for c in get_children():
+		remove_child(c)
+		c.queue_free()
+	agents.append_array([KuikkaLakeAgent.new(), KuikkaHillAgent.new()])
+	
+	for agent in agents:
+		agent.heightmap = heightmap
+		agent.seed = terrain_image.generation_seed
+		agent.state = rng.randi()
+		
+		print_debug(agent.agent_type)
+		agent.terrain_image = terrain_image
+		# Add as child to enable _ready and _process loop for agent Nodes.
+		add_child(agent, true)
+		
+		# Remove agent from active when tokens are spent and generation finishes.
+		agent.generation_finished.connect(
+				(func(a): 
+					if a in _active_agents: 
+						# print_debug("Agent ", a, "finished generation.")
+						agent_areas[a.agent_type] = a.area_silhouette
+						_active_agents.erase(a)
+					# Consider finished if all agents have finished.
+					if _active_agents.size() == 0:
+						# print_debug("Generation finished.")
+						agent_generation_finished.emit()))
+		
 	
 
 ## Setup agents for generating heightmap

@@ -5,10 +5,13 @@ extends EditorPlugin
 ## to add / remove plugin from project.
 
 var singleton_name : String = "KuikkaTerrainGen"
-var singleton_script : String = "res://addons/kuikka_terrain_gen/components/terrain_server.gd"
+var singleton_script : String = "res://addons/kuikka_terrain_gen/components/terrain_server.tscn"
 
 var timer_singleton_name : String = "KuikkaTimer"
 var timer_singleton_script : String = "res://addons/kuikka_terrain_gen/util/global_timer.tscn"
+
+var img_singleton_name : String = "KuikkaImgUtil"
+var img_singleton_script : String = "res://addons/kuikka_terrain_gen/util/image_utils.tscn"
 
 const editor_ui_scene : PackedScene = preload("res://addons/kuikka_terrain_gen/ui/terrain_generator_ui.tscn")
 
@@ -20,6 +23,7 @@ var _editor_ui : Control
 func _enter_tree():
 	add_autoload_singleton(singleton_name, singleton_script)
 	add_autoload_singleton(timer_singleton_name, timer_singleton_script)
+	add_autoload_singleton(img_singleton_name, img_singleton_script)
 	generate_settings()
 	
 	if Engine.is_editor_hint():
@@ -36,9 +40,11 @@ func _enter_tree():
 func _exit_tree():
 	remove_autoload_singleton(singleton_name)
 	remove_autoload_singleton(timer_singleton_name)
+	remove_autoload_singleton(img_singleton_name)
 	if _editor_ui:
 		_editor_ui.queue_free()
 	clear_settings()
+
 
 func _has_main_screen():
 	# return true
@@ -60,7 +66,9 @@ func _get_plugin_icon():
 
 ## Generate settings for terrain generator plugin
 func generate_settings():
-	add_custom_project_setting("kuikka_terrain_gen/gdal_path", "res://addons/kuikka_terrain_gen/gdal", 4, PROPERTY_HINT_FILE, "Path to gdal executables")
+	add_custom_project_setting("kuikka_terrain_gen/gdal_path", "", 4, PROPERTY_HINT_FILE, "Directory path to gdal executables")
+	add_custom_project_setting("kuikka_terrain_gen/image_magick_path", "", 4, PROPERTY_HINT_FILE, "File path to ImageMagick executable executables")
+	
 	
 	var error = ProjectSettings.save()
 	if error: printerr("Error saving project settings: ", error)
@@ -83,6 +91,7 @@ func add_custom_project_setting(name: String, default_value, type: int, hint: in
 
 func clear_settings():
 	remove_custom_project_setting("kuikka_terrain_gen/gdal_path")
+	remove_custom_project_setting("kuikka_terrain_gen/image_magick_path")
 	
 	var error = ProjectSettings.save()
 	if error: printerr("Error saving project settings: ", error)

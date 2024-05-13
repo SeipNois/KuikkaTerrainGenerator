@@ -73,6 +73,7 @@ func create_ui_elements():
 func _on_generate_button_pressed():
 	generate.call_deferred()
 
+
 func generate():
 		if not parameters.database:
 			parameters.database = preload("res://addons/kuikka_terrain_gen/db/height_db.tres")

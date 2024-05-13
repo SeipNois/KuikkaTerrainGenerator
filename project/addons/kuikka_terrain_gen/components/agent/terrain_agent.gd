@@ -16,12 +16,19 @@ signal generation_finished(agent: KuikkaTerrainAgent)
 
 ## Agent specific parameter collection for generation features,
 ## extended by inheriting classes.
-var parameters : KuikkaAgentParameters
+# var parameters : KuikkaAgentParameters'
+
+## Terrain image used as reference for feature generation.
+var terrain_image : TerrainFeatureImage
+
+## Dictionary of features from [terrain_image.features] relevant to this
+## agent.
+var parameters : Dictionary = {}
 
 var agent_type : StringName = ""
 
 ## RNG for making random actions in deterministic way
-var rng : RandomNumberGenerator = RandomNumberGenerator.new()
+var rng : WeightedRNG = WeightedRNG.new()
 
 ## Generation seed for RNG
 var seed : int = 0:
@@ -59,7 +66,9 @@ var area_silhouette : Dictionary = {
 }
 
 ## Offset for blending brush rect centered around point.
-var offset = Vector2i(brush_size/2, brush_size/2)
+var offset : Vector2i:
+	get:
+		return Vector2i(brush_size/2, brush_size/2)
 
 var gene_placement : GeneDistribute = GeneDistribute.RECT
 

@@ -1,0 +1,11 @@
+[gd_scene load_steps=3 format=3 uid="uid://ctxtev2s785wm"]
+
+[ext_resource type="Script" path="res://addons/kuikka_terrain_gen/components/terrain_server.gd" id="1_7xet0"]
+[ext_resource type="Script" path="res://addons/kuikka_terrain_gen/components/terrain_parser.gd" id="2_sc0rp"]
+
+[node name="TerrainServer" type="Node" node_paths=PackedStringArray("terrain_parser")]
+script = ExtResource("1_7xet0")
+terrain_parser = NodePath("Parser")
+
+[node name="Parser" type="Node" parent="."]
+script = ExtResource("2_sc0rp")

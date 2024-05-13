@@ -29,11 +29,94 @@ grow_vertical = 2
 [node name="HSplitContainer" type="HSplitContainer" parent="CenterContainer"]
 layout_mode = 2
 
-[node name="LeftSide" type="CenterContainer" parent="CenterContainer/HSplitContainer"]
+[node name="LeftSide" type="MarginContainer" parent="CenterContainer/HSplitContainer"]
 layout_mode = 2
 
 [node name="VBoxContainer" type="VBoxContainer" parent="CenterContainer/HSplitContainer/LeftSide"]
+custom_minimum_size = Vector2(220, 0)
 layout_mode = 2
+
+[node name="Label" type="Label" parent="CenterContainer/HSplitContainer/LeftSide/VBoxContainer"]
+layout_mode = 2
+text = "Height Data Files"
+
+[node name="HeightmapList" type="LineEdit" parent="CenterContainer/HSplitContainer/LeftSide/VBoxContainer"]
+unique_name_in_owner = true
+layout_mode = 2
+
+[node name="HmapFileDialog" type="FileDialog" parent="CenterContainer/HSplitContainer/LeftSide/VBoxContainer/HeightmapList"]
+unique_name_in_owner = true
+title = "Open File(s)"
+size = Vector2i(299, 159)
+ok_button_text = "Avaa"
+file_mode = 1
+access = 2
+use_native_dialog = true
+
+[node name="SelectHeightDataFiles" type="Button" parent="CenterContainer/HSplitContainer/LeftSide/VBoxContainer"]
+layout_mode = 2
+text = "Open Files"
+
+[node name="HSeparator" type="HSeparator" parent="CenterContainer/HSplitContainer/LeftSide/VBoxContainer"]
+layout_mode = 2
+
+[node name="Label2" type="Label" parent="CenterContainer/HSplitContainer/LeftSide/VBoxContainer"]
+layout_mode = 2
+text = "Terrain Feature Files"
+
+[node name="TerrainDataList" type="LineEdit" parent="CenterContainer/HSplitContainer/LeftSide/VBoxContainer"]
+unique_name_in_owner = true
+layout_mode = 2
+
+[node name="TerrainFileDialog" type="FileDialog" parent="CenterContainer/HSplitContainer/LeftSide/VBoxContainer/TerrainDataList"]
+unique_name_in_owner = true
+title = "Open File(s)"
+size = Vector2i(299, 159)
+ok_button_text = "Avaa"
+file_mode = 1
+access = 2
+use_native_dialog = true
+
+[node name="SelectTerrainDataFiles" type="Button" parent="CenterContainer/HSplitContainer/LeftSide/VBoxContainer"]
+layout_mode = 2
+text = "Open Files"
+
+[node name="Label3" type="Label" parent="CenterContainer/HSplitContainer/LeftSide/VBoxContainer"]
+layout_mode = 2
+text = "Generation seed"
+
+[node name="LineEdit" type="LineEdit" parent="CenterContainer/HSplitContainer/LeftSide/VBoxContainer"]
+layout_mode = 2
+
+[node name="Label4" type="Label" parent="CenterContainer/HSplitContainer/LeftSide/VBoxContainer"]
+layout_mode = 2
+text = "Map size"
+
+[node name="HBoxContainer" type="HBoxContainer" parent="CenterContainer/HSplitContainer/LeftSide/VBoxContainer"]
+layout_mode = 2
+
+[node name="Label" type="Label" parent="CenterContainer/HSplitContainer/LeftSide/VBoxContainer/HBoxContainer"]
+layout_mode = 2
+text = "W"
+
+[node name="SpinBoxMapWidth" type="SpinBox" parent="CenterContainer/HSplitContainer/LeftSide/VBoxContainer/HBoxContainer"]
+layout_mode = 2
+
+[node name="Label2" type="Label" parent="CenterContainer/HSplitContainer/LeftSide/VBoxContainer/HBoxContainer"]
+layout_mode = 2
+text = "H"
+
+[node name="SpinBoxMapHeight" type="SpinBox" parent="CenterContainer/HSplitContainer/LeftSide/VBoxContainer/HBoxContainer"]
+layout_mode = 2
+
+[node name="Label5" type="Label" parent="CenterContainer/HSplitContainer/LeftSide/VBoxContainer"]
+layout_mode = 2
+text = "Terrain Level"
+
+[node name="SpinBox" type="SpinBox" parent="CenterContainer/HSplitContainer/LeftSide/VBoxContainer"]
+layout_mode = 2
+max_value = 1.0
+step = 0.001
 
 [node name="RightSide" type="CenterContainer" parent="CenterContainer/HSplitContainer"]
 layout_mode = 2
@@ -106,3 +189,13 @@ popup/item_0/text = "PNG Image"
 popup/item_0/id = 0
 popup/item_1/text = "JPG Image"
 popup/item_1/id = 1
+
+[connection signal="files_selected" from="CenterContainer/HSplitContainer/LeftSide/VBoxContainer/HeightmapList/HmapFileDialog" to="." method="_on_hmap_file_dialog_files_selected"]
+[connection signal="pressed" from="CenterContainer/HSplitContainer/LeftSide/VBoxContainer/SelectHeightDataFiles" to="." method="_on_select_height_data_files_pressed"]
+[connection signal="files_selected" from="CenterContainer/HSplitContainer/LeftSide/VBoxContainer/TerrainDataList/TerrainFileDialog" to="." method="_on_terrain_file_dialog_files_selected"]
+[connection signal="pressed" from="CenterContainer/HSplitContainer/LeftSide/VBoxContainer/SelectTerrainDataFiles" to="." method="_on_select_terrain_data_files_pressed"]
+[connection signal="text_changed" from="CenterContainer/HSplitContainer/LeftSide/VBoxContainer/LineEdit" to="." method="_on_line_edit_text_changed"]
+[connection signal="value_changed" from="CenterContainer/HSplitContainer/LeftSide/VBoxContainer/HBoxContainer/SpinBoxMapWidth" to="." method="_on_spin_box_map_width_value_changed"]
+[connection signal="value_changed" from="CenterContainer/HSplitContainer/LeftSide/VBoxContainer/HBoxContainer/SpinBoxMapHeight" to="." method="_on_spin_box_map_height_value_changed"]
+[connection signal="value_changed" from="CenterContainer/HSplitContainer/LeftSide/VBoxContainer/SpinBox" to="." method="_on_spin_box_value_changed"]
+[connection signal="pressed" from="CenterContainer/HSplitContainer/RightSide/HeightmapOutput/AspectRatioContainer/HBoxContainer/GenerateButton" to="." method="_on_generate_button_pressed"]
