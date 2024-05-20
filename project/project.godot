@@ -17,6 +17,9 @@ config/icon="res://icon.svg"
 [autoload]
 
 FFT="*res://addons/godot_fft/Fft.gd"
+KuikkaTerrainGen="*res://addons/kuikka_terrain_gen/components/terrain_server.tscn"
+KuikkaTimer="*res://addons/kuikka_terrain_gen/util/global_timer.tscn"
+KuikkaImgUtil="*res://addons/kuikka_terrain_gen/util/image_utils.tscn"
 
 [dotnet]
 
@@ -25,3 +28,8 @@ project/assembly_name="Kuikka Terrain Generator"
 [editor_plugins]
 
 enabled=PackedStringArray("res://addons/godot_fft/plugin.cfg", "res://addons/kuikka_terrain_gen/plugin.cfg", "res://addons/terrain_3d/plugin.cfg")
+
+[kuikka_terrain_gen]
+
+gdal_path="F:\\Tiedostot\\Opiskelu\\diplomityö\\kuikka-project\\gdal\\OSGeo4W\\bin"
+image_magick_path="F:\\Program Files\\ImageMagick-7.1.1-Q16-Static"

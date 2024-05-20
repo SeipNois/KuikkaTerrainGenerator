@@ -12,7 +12,8 @@ extends Node
 
 ## Get collection of statistics from image.
 func img_get_stats(path: String, extended_features: bool = false):
-	return _im_fetch_img_stats(path, extended_features)
+	path = ProjectSettings.globalize_path(path)
+	return im_fetch_img_stats(path, extended_features)
 
 
 ## NOTE: Uses red channel, considering image monochrome.
@@ -58,6 +59,7 @@ func img_get_max(path : String) -> float:
 			#maximum = max(color.r, maximum)
 	#
 	#return maximum
+
 
 ## Get mean value in heightmap image.
 ## NOTE: Uses red channel, considering image monochrome.
@@ -152,12 +154,22 @@ func gdal_translate_batch(filepaths : Array, destination: String, format: GdalUt
 
 
 func gdal_translate_one(filepath : String, destination: String, format: GdalUtils.ImgFormat, keep_world_data: bool=false):
-		_gdal.gdal_translate_one(filepath,destination,format,keep_world_data)
+	_gdal.gdal_translate_one(filepath,destination,format,keep_world_data)
+
+
+func gdal_fetch_img_stats(path: String):
+	path = ProjectSettings.globalize_path(path)
+	return _gdal.fetch_img_stats(path)
 
 
 ## * * * ImageMagick * * * *
 
-func _im_fetch_img_stats(path: String, extended_features: bool = false):
+func im_fetch_img_stats(path: String, extended_features: bool = false):
+	path = ProjectSettings.globalize_path(path)
 	return _img_magick.fetch_img_stats(path, extended_features)
-	
+
+
+## Execute imagemagick from commandline with arbitrary arguments.
+func img_magick_execute(args: Array):
+	return _img_magick.execute(args)
 	

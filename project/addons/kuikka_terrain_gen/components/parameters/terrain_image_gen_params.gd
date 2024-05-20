@@ -12,6 +12,14 @@ class_name ImageGenParams extends Node
 ## TODO: Select channel which to use for height
 @export var start_level : Color = Color.DARK_GRAY
 
+## Size of imported heightmap tiles.
+var height_tile_size = 3000
+## Size of GML formatted data sample tile.
+var gml_tile_size = 6000
+## Meters per pixel in heightmaps.
+var pixel_size = 2
+
+
 @export_category("Image settings")
 @export var image_format : Image.Format = Image.FORMAT_RGBA8
 

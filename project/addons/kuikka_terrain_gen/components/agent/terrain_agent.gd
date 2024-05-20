@@ -13,6 +13,7 @@ class_name KuikkaTerrainAgent extends Node
 enum GeneDistribute {RECT, DELAUNAY, CONCAVE}
 
 signal generation_finished(agent: KuikkaTerrainAgent)
+signal generation_step
 
 ## Agent specific parameter collection for generation features,
 ## extended by inheriting classes.
@@ -62,7 +63,8 @@ var area_silhouette : Dictionary = {
 	"covered_points" : [], # Array of Array[Vector2i]
 	"covered_rect" : [],	# Array of Array[Rect2D]
 	"gene_points" : [], 	# Array of Vector2
-	"gene_weights": [] # Array of float
+	"gene_weights": [], # Array of float,
+	"gene_mask": gene_mask # Image
 }
 
 ## Offset for blending brush rect centered around point.
@@ -90,16 +92,12 @@ func _ready():
 
 
 func _physics_process(delta):
-	if tokens > 0:
-		_generation_process()
-	else:
-		finish_generation()
-
+	pass
 
 ## Generation step for agent. Should be implemented by inheriting agents
 ## to implement generation logic.
 func _generation_process():
-	pass
+	generation_step.emit()
 
 
 ## Make necessary preparations and start generation process.
@@ -108,8 +106,15 @@ func start_generation():
 	# Start generation if there are tokens left. Otherwise consider generation
 	# instantly completed.
 	if tokens > 0:
-		process_mode = Node.PROCESS_MODE_INHERIT
+		print_debug(agent_type, " started run with ", tokens, " tokens.")
+		generation_step.connect(func():
+									if tokens > 0:
+										_generation_process()
+									else:
+										finish_generation())
+		_generation_process.call_deferred()
 	else:
+		print_debug(agent_type, " no tokens assigned. Skipping generation.")
 		finish_generation()
 
 
@@ -130,7 +135,8 @@ func _create_gene_map():
 		# GeneDistribute.CONCAVE:
 		_:
 			_genes_bounding_box()
-
+	
+	area_silhouette["gene_mask"] = gene_mask
 
 ## --- Gene coverage options ---
 
@@ -142,7 +148,12 @@ func _genes_bounding_box():
 	for travel in area_silhouette.covered_points:
 		points.append_array(travel)
 		# Get weight from effect area mask alpha
-		weights.append_array(travel.map(func(p): return gene_mask.get_pixel(p.x, p.y).a))
+		weights.append_array(travel.map(func(p): 
+			if p.x > 0 and p.x < gene_mask.get_width() and \
+			p.y > 0 and p.y < gene_mask.get_height():
+				return gene_mask.get_pixel(p.x, p.y).a
+			else:
+				return 1.0))
 	
 	area_silhouette.gene_points = points
 	area_silhouette.gene_weights = weights
@@ -247,3 +258,7 @@ func _modulate_brush_alpha(a: float):
 		for y in brush.get_height():
 			var bc = brush.get_pixel(x, y)
 			brush.set_pixel(x, y, Color(bc.r, bc.g, bc.b, bc.a * a))
+
+
+func _update_brush_size(size):
+	brush.resize(size, size)

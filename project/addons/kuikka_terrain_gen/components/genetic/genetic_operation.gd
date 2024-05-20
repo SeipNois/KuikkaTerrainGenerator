@@ -10,3 +10,9 @@ class_name GeneticOperation extends Resource
 ## resulting [Image]
 func apply_operation(sample : Image) -> Image:
 	return sample
+
+
+## Applies genetic operation to image at [param path] using
+## imagemagick command line tools.
+func apply_operation_path(path : String) -> void:
+	return

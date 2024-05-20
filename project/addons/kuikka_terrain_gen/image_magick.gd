@@ -6,8 +6,15 @@ const MAGICK = "/magick.exe"
 @export var exec_path = ProjectSettings.globalize_path(
 	ProjectSettings.get_setting("kuikka_terrain_gen/image_magick_path") if ProjectSettings.get_setting("kuikka_terrain_gen/image_magick_path") else ""):
 		set(val):
-			exec_path = val
+			exec_path = ProjectSettings.globalize_path(val).trim_suffix("/")
+					
+			if exec_path == "":
+				exec_path = KuikkaConfig.tools_config().get_value("tools", "image_magick_path", "")
+			
 			print("Image magick executable path set to %s" % val)
+			_is_loaded = try_load_executable()
+
+var _is_loaded : bool = false
 
 
 # Called when the node enters the scene tree for the first time.
@@ -22,10 +29,26 @@ func _process(delta):
 
 ## Check that executables exist in given path
 func try_load_executable() -> bool:
-	if not exec_path or exec_path == "": return false
+	if _is_loaded:
+		return true
 	
-	return FileAccess.file_exists(exec_path+MAGICK)
+	if not exec_path or exec_path == "": return false
+	_is_loaded = FileAccess.file_exists(exec_path+MAGICK)
+	return _is_loaded
 
+
+## Execute operation with imagemagick with arbitrary arguments.
+func execute(args):
+	var result = []
+	if not try_load_executable():
+		printerr("Failed to find ImageMagick executable!")
+		return result
+	
+	var exitc = OS.execute(exec_path+MAGICK, args, result, OS.is_debug_build(), OS.is_debug_build())
+	if exitc == -1:
+		printerr("Error executing command with imagemagick.")
+		return result
+	return result
 
 ## Load image stats to output file. Return result if successful.
 ## Otherwise returns empty array.
@@ -33,7 +56,7 @@ func fetch_img_stats(path: String, extended_features: bool = false) -> Dictionar
 	var result = []
 	if not try_load_executable():
 		printerr("Failed to find ImageMagick executable!")
-		return result
+		return {}
 	
 	var args = ["identify", "-verbose"]
 	
@@ -42,20 +65,25 @@ func fetch_img_stats(path: String, extended_features: bool = false) -> Dictionar
 	
 	args.append(path)
 	
-	var exitc = OS.execute(exec_path+MAGICK, args, result, OS.is_debug_build(), OS.is_debug_build())
+	var exitc = OS.execute(exec_path+MAGICK, args, result, OS.is_debug_build(), false)
 	if exitc == -1:
 		printerr("Failed to fetch image stats.")
-		return result
+		return {}
 	
-	print("ImageMagick result: \n", result[0])
+	# print("ImageMagick result: \n", result[0])
 	
 	# Split by rows
 	var split = result[0].split("\n")
 	
 	# Find overall stats.
-	var items = _im_parse_output(split, "Channel statistics")
-	items = _im_parse_output(items, "Gray")
+	var rows = _im_parse_output(split, "Channel statistics")
+	var items = _im_parse_output(rows, "Gray")
 	items = items.slice(1, 9)
+	
+	# Use Red channel if Gray is not available.
+	if items.size() < 8:
+		items = _im_parse_output(rows, "Red")
+		items = items.slice(1, 9)
 	
 	for i in items.size():
 		var item : String = items[i]
@@ -70,6 +98,10 @@ func fetch_img_stats(path: String, extended_features: bool = false) -> Dictionar
 		else:
 			item = item.split(":")[1].split("(")[0]
 		items[i] = item
+	
+	if items.size() < 8:
+		push_error("Failed to fetch image stats.")
+		return {}
 	
 	var stats = {
 		"min": float(items[0]),
@@ -91,15 +123,16 @@ func fetch_img_stats(path: String, extended_features: bool = false) -> Dictionar
 
 
 ## Find first array item in Array[String] that contains the given key and
-## returns subarray of items after found index. [index+1, -1]
+## returns subarray of items after found index. [index, -1]
 static func _im_parse_output(arr: Array, key: String):
-	var item = arr.filter(func(x: String): return x.contains("Gray:"))
+	var item = arr.filter(func(x: String): return x.contains(key))
 	var idx = -1
 	
 	if item.size() > 0:
 		idx = arr.find(item[0])
 	
-	if idx == -1 or idx == arr.size()-1:
+	if idx == -1:
 		return []
 	
-	return arr.slice(idx+1, -1)
+	return arr.slice(idx, -1)
+

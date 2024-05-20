@@ -12,12 +12,19 @@ var params = ImageGenParams.new()
 ## [member global_instance] reference instead.
 var generator = TerrainServerGD.get_instance()
 
+var image_exports_path = "res://image_exports/"
+var export_selection = 0
+
 @onready var _hmap_list = %HeightmapList
 @onready var _terrain_data_list = %TerrainDataList
+
+@onready var _hmap_texture_out = %HmapTextureRect
+@onready var _areas_output = %AreasOverlay
 
 # Called when the node enters the scene tree for the first time.
 func _ready():
 	generator = TerrainServerGD.get_instance()
+	generator.generation_finished.connect(_on_generation_finished)
 	
 	if not params:
 		params = ImageGenParams.new()
@@ -35,9 +42,15 @@ func generate_terrain():
 	else:
 		# TODO: set [ImageGenParams][member params] for generation
 		
-		generator.generate_terrain_from_reference(_selected_hmaps, _selected_terrain_features, params)
+		generator.generate_terrain_from_reference.call_deferred(_selected_hmaps, _selected_terrain_features, params)
+
 
 ## * * * * * Signal catches * * * * * 
+
+## Callback for generation finished to populate ui with resulting heightmap.
+func _on_generation_finished(heightmap: Image, agent_travels):
+	_hmap_texture_out.texture = ImageTexture.create_from_image(heightmap)
+	_areas_output.draw_areas(agent_travels)
 
 ## Open heightmap file selection
 func _on_select_height_data_files_pressed():
@@ -77,4 +90,29 @@ func _on_spin_box_map_height_value_changed(value):
 
 
 func _on_spin_box_value_changed(value):
-	params.start_level = value
+	params.start_level = Color(value, value, value, 1)
+
+
+## Toggle overlay
+func _on_check_button_toggled(toggled_on):
+	if toggled_on:
+		_areas_output.show() 
+	else:
+		_areas_output.hide()
+
+
+func _on_export_button_pressed():
+	if not _hmap_texture_out.texture:
+		printerr("No heightmap generated. Can not export to image.")
+		return
+		
+	var image : Image = _hmap_texture_out.texture.get_image()
+	if image:
+		var img_name = KuikkaUtils.rand_string(16)
+		match export_selection:
+			# PNG
+			0:
+				image.save_png(image_exports_path+img_name+".png")
+			# JPG
+			1:
+				image.save_jpg(image_exports_path+img_name+".jpg");

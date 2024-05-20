@@ -5,12 +5,22 @@ class_name GdalUtils extends Node
 
 
 const GDAL_TRANSLATE = "/gdal_translate.exe"
+const GDAL_INFO = "/gdalinfo.exe"
 
 enum ImgFormat {PNG, EXR}
 
 @export var gdal_path : StringName =  ProjectSettings.globalize_path(
-	ProjectSettings.get_setting("kuikka_terrain_gen/gdal_path") if ProjectSettings.get_setting("kuikka_terrain_gen/gdal_path") else "")
+	ProjectSettings.get_setting("kuikka_terrain_gen/gdal_path") if ProjectSettings.get_setting("kuikka_terrain_gen/gdal_path") else ""):
+	set(val):
+		gdal_path = ProjectSettings.globalize_path(val).trim_suffix("/")
+		
+		if gdal_path == "":
+			gdal_path = KuikkaConfig.tools_config().get_value("tools", "gdal_path", "")
+		
+		_is_loaded = try_load_gdal_executable()
+	
 var _active_process_ids : Array[int]
+var _is_loaded :bool = false
 
 # Called when the node enters the scene tree for the first time.
 func _ready():
@@ -53,7 +63,7 @@ func gdal_translate_batch(filepaths : Array, destination: String, format: ImgFor
 		
 	for f in filepaths:
 		await gdal_translate_one(f, destination, format)
-	
+
 
 ## Convert all files in given path between formats
 ## [param filepath] Path of file to convert to another format.
@@ -94,9 +104,80 @@ func gdal_translate_one(filepath : String, destination: String, format: ImgForma
 	# return result
 
 
+## Fetch image statistics using gdalinfo
+func fetch_img_stats(path: String) -> Dictionary:
+	if not try_load_gdal_executable():
+		printerr("Gdal executables could not be located! Please check gdal_path set in ProjectSettings.")
+		return {}
+	
+	var result = []
+	var filepath = ProjectSettings.globalize_path(path)
+	var args = ["-mm", filepath]
+	
+	var exitc = OS.execute(gdal_path+GDAL_INFO, args, result, OS.is_debug_build(), OS.is_debug_build())
+	
+	if exitc == -1:
+		printerr("Failed to fetch image statistics with gdalinfo.")
+		return {}
+	
+	# Dictionarize result values.
+	var dict = {}
+	
+	var split = result[0].split("\n")
+	var row = _parse_output(split, "Computed Min/Max")
+	
+	if row.size() > 0:
+		row = row[0]
+		row = row.replace(" ", "")
+		row = row.replace("\r", "")
+		row = row.replace("\n", "")
+		var min_max = row.split("=")[1].split(",")
+		
+		dict["min"] = float(min_max[0])
+		dict["max"] = float(min_max[1])
+	else:
+		push_error("Failed to parse min/max values for ", filepath)
+	
+	#var orig_row = _parse_output(split, "Origin")
+	#
+	#if orig_row.size() > 0:
+		#orig_row = orig_row.replace(" ", "")
+		#orig_row = orig_row.replace("\r", "")
+		#orig_row = orig_row.replace("\n", "")
+		#var xy = orig_row.split("(")[1].split(")")[0].split(":")
+			#
+		#dict["origin"] = Vector2(float(xy[0]), float(xy[1]))
+		#
+	#else:
+		#push_error("Failed to parse origin coordinate values for ", filepath)
+	
+	return dict
+
+
 ## Check that gdal executables exist in given path
 func try_load_gdal_executable() -> bool:
+	if _is_loaded:
+		return true
+		
 	if not gdal_path or gdal_path == "":
 		return false
-		
-	return FileAccess.file_exists(gdal_path+GDAL_TRANSLATE)
+	
+	_is_loaded = FileAccess.file_exists(gdal_path+GDAL_TRANSLATE) and \
+		 	FileAccess.file_exists(gdal_path+GDAL_INFO)
+	
+	return _is_loaded
+
+
+## Find first array item in Array[String] that contains the given key and
+## returns subarray of items after found index. [index, -1]
+static func _parse_output(arr: Array, key: String):
+	var item = arr.filter(func(x: String): return x.contains(key))
+	var idx = -1
+	
+	if item.size() > 0:
+		idx = arr.find(item[0])
+	
+	if idx == -1:
+		return []
+	
+	return arr.slice(idx, -1)

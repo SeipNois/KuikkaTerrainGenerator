@@ -30,3 +30,9 @@ func apply_operation(img : Image) -> Image:
 			img.set_pixel(x, y, color)
 	
 	return img
+
+
+## Applies genetic operation to image at [param path] using
+## imagemagick command line tools.
+func apply_operation_path(path : String) -> void:
+	return

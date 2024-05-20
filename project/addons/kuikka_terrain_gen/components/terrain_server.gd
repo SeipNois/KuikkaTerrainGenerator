@@ -15,6 +15,8 @@ class_name TerrainServerGD extends Node
 signal generation_step_completed
 signal agent_generation_finished
 signal genetic_operations_finished
+signal generation_finished(heightmap, areas)
+
 
 var _instance: TerrainServerGD
 static var global_instance: TerrainServerGD
@@ -51,7 +53,7 @@ func _enter_tree():
 
 # Called when the node enters the scene tree for the first time.
 func _ready():
-	pass # Replace with function body.
+	terrain_parser = TerrainParser.new()
 
 
 # Called every frame. 'delta' is the elapsed time since the previous frame.
@@ -87,12 +89,15 @@ func generate_terrain(parameters: KuikkaTerrainGenParams) -> Array:
 	print_debug("Finished terrain generation ", _end_ticks, "\nTook: ",
 	str(_end_ticks-_start_ticks))
 	
+	generation_finished.emit(heightmap, agent_areas)
 	return [result, agent_areas]
 
 
 ## Generate terrain using heightmaps and gml formatted feature data of
 ## certain region as reference.
 func generate_terrain_from_reference(heightmaps: Array, gml: Array, parameters: ImageGenParams):
+	var _start_ticks = Time.get_ticks_msec()
+	print_debug("Started terrain generation ", _start_ticks)
 	# Create reference TerrainImage
 	heightmap = Image.create(parameters.width, 
 						parameters.height,
@@ -100,14 +105,44 @@ func generate_terrain_from_reference(heightmaps: Array, gml: Array, parameters: 
 						parameters.image_format)
 	heightmap.fill(parameters.start_level)
 	
-	terrain_image = terrain_parser.parse_data(heightmaps, gml)
+	terrain_image = terrain_parser.parse_data(heightmaps, gml, parameters)
 	terrain_image.generation_seed = parameters.seed
 	rng.set_seed(parameters.seed)
 	rng.set_state(parameters.seed)
 	
+	print_debug(terrain_image.features["jarvi"].get_properties())
 	
 	# Run agent generation process.
+	print_debug("Setting up agents.")
 	_setup_agents_image(terrain_image, heightmap)
+	print_debug("Starting agent run.")
+	_start_agent_generation()
+	
+	# Wait for agent generation to finish
+	await agent_generation_finished
+	
+	# FIXME: DEBUG REMOVE to allow agent output
+	# heightmap.fill(parameters.start_level)
+	# print_debug("agent areas ", agent_areas)
+	
+	print_debug("Sample heightmap images.")
+	terrain_image.database = HeightSampleDB.new()
+	terrain_image.database.unsorted_samples = await KuikkaUtils.sample_images_array(heightmaps, 300, 
+		"res://addons/kuikka_terrain_gen/height_samples/gene_samples")
+	
+	print_debug("Setting up evolutionary process.")
+	_setup_evolution_process_image(terrain_image, heightmap)
+	
+	print_debug("Starting evolution.")
+	_run_evolution_process_image(terrain_image)
+	
+	await evolution_handler.heightmap_completed
+	
+	var _end_ticks = Time.get_ticks_msec()
+	print_debug("Finished generation ", _end_ticks, "\nTook: ",
+	str(_end_ticks-_start_ticks))
+	
+	generation_finished.emit(heightmap, agent_areas)
 	
 
 ## Update heightsamples sorting based on new parameters.
@@ -151,6 +186,24 @@ func _start_agent_generation():
 		agent.start_generation.call_deferred()
 	return
 
+## * * * * * * * * * * * * * * * * * * * *
+## Terrain Image based setup
+
+
+func _setup_evolution_process_image(terrain_image, heightmap):
+	evolution_handler.seed = terrain_image.generation_seed
+	evolution_handler.state = rng.randi()
+	
+	# Setup image samples and heightmap.
+	evolution_handler.setup_handler_from_image(terrain_image, heightmap)
+	
+	evolution_handler.initialize_populations_from_image(terrain_image, agent_areas)
+	
+	# evolution_handler.heightmap_completed.connect(func(hmap): 
+	# 	print_debug("Genetic processes finished.")
+	# 	genetic_operations_finished.emit())
+	return
+
 
 ## Setup agents using parameters saved as TerrainFeatureImage.
 func _setup_agents_image(terrain_image: TerrainFeatureImage, heightmap: Image):
@@ -187,8 +240,19 @@ func _setup_agents_image(terrain_image: TerrainFeatureImage, heightmap: Image):
 					if _active_agents.size() == 0:
 						# print_debug("Generation finished.")
 						agent_generation_finished.emit()))
-		
 	
+	# FIXME: Activate all agents
+	_active_agents = agents
+	# _active_agents = [agents[0]]
+	return
+
+
+func _run_evolution_process_image(terrain_image: TerrainFeatureImage):
+	evolution_handler.run_evolution_process_image.call_deferred(terrain_image)
+
+
+## * * * * * * * * * * * * * * * * * * * *
+## Parameters based setup
 
 ## Setup agents for generating heightmap
 func _setup_agents(parameters: KuikkaTerrainGenParams, heightmap: Image):

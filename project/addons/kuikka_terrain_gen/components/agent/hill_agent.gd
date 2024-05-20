@@ -15,35 +15,44 @@ func _init():
 
 
 func _generation_process():
-	# Blend at current position if above treshold
-	if heightmap.get_pixel(last_position.x, last_position.y).r > parameters.generation_treshold:
+	# Update brush
+	_update_brush_size(
+		rng.randi_normal_dist(parameters["hill"].size_mean*2, 
+								parameters["hill"].size_std_dev*2))
+		
+	# Blend at current position if within height threshold
+	var rang = terrain_image.height_profile.height_range
+	var h = rang.x + heightmap.get_pixel(last_position.x, last_position.y).r \
+															* (rang.y-rang.x)
+	# print_debug(h, " ", parameters["hill"].gen_height_min, 
+	#			" ", parameters["hill"].gen_height_max)
+				
+	if h > parameters["hill"].gen_height_min and \
+	h < parameters["hill"].gen_height_max:
 		heightmap.blend_rect(brush,
-							brush.get_used_rect(), 
-							last_position-offset)
+					brush.get_used_rect(), 
+					last_position-offset)
 		gene_mask.blend_rect(brush,
 							brush.get_used_rect(), 
 							last_position-offset)
 	
 	area_silhouette.agent_travel[-1].add_point(last_position)
 	
-	# Add to covered area rect to silhouette.
-	# _append_covered_points(last_position, offset)
-	
-	
-	# Get next position, round new position to pixels.
-	var speed = rng.randi_range(parameters.move_speed.x, parameters.move_speed.y)
+	var feat = parameters["hill"]
+	var speed = rng.randi_range_weighted(feat.size_min, feat.size_max, feat.size_mean, feat.size_std_dev)
 	var new_pos: Vector2 = Vector2(last_position) + move_direction * speed
 	last_position = Vector2i(new_pos)
 	
 	# Select new movement direction
-	move_direction = move_direction.rotated(
-									rng.randf_range(-parameters.direction_sway, 
-													parameters.direction_sway))
+	move_direction = move_direction.rotated(rng.randf_range(-90, 90))
+	
+	var treshold = area_silhouette
 	
 	# Randomize new position if out of bounds or jump treshold is reached.
-	if last_position.x < 0 or last_position.x > heightmap.get_width() or \
-	last_position.y < 0 or last_position.y > heightmap.get_height() or \
-	rng.randf_range(0, 1) < parameters.jump_treshold:
+	if last_position.x < 0 or last_position.x >= heightmap.get_width() or \
+	last_position.y < 0 or last_position.y >= heightmap.get_height():
+	# TODO: Jump treshold
+	# or \ rng.randf_range(0, 1) < treshold:
 		
 		last_position = Vector2i(rng.randi_range(offset.x, heightmap.get_width()-offset.x),
 								rng.randi_range(offset.y, heightmap.get_height()-offset.y))
@@ -51,12 +60,52 @@ func _generation_process():
 		area_silhouette.agent_travel.append(Curve2D.new())
 	
 	tokens -= 1
+	generation_step.emit()
+	
+	## Blend at current position if above treshold
+	#if heightmap.get_pixel(last_position.x, last_position.y).r > parameters.generation_treshold:
+		#heightmap.blend_rect(brush,
+							#brush.get_used_rect(), 
+							#last_position-offset)
+		#gene_mask.blend_rect(brush,
+							#brush.get_used_rect(), 
+							#last_position-offset)
+	#
+	#area_silhouette.agent_travel[-1].add_point(last_position)
+	#
+	## Add to covered area rect to silhouette.
+	## _append_covered_points(last_position, offset)
+	#
+	#
+	## Get next position, round new position to pixels.
+	#var speed = rng.randi_range(parameters.move_speed.x, parameters.move_speed.y)
+	#var new_pos: Vector2 = Vector2(last_position) + move_direction * speed
+	#last_position = Vector2i(new_pos)
+	#
+	## Select new movement direction
+	#move_direction = move_direction.rotated(
+									#rng.randf_range(-parameters.direction_sway, 
+													#parameters.direction_sway))
+	#
+	## Randomize new position if out of bounds or jump treshold is reached.
+	#if last_position.x < 0 or last_position.x > heightmap.get_width() or \
+	#last_position.y < 0 or last_position.y > heightmap.get_height() or \
+	#rng.randf_range(0, 1) < parameters.jump_treshold:
+		#
+		#last_position = Vector2i(rng.randi_range(offset.x, heightmap.get_width()-offset.x),
+								#rng.randi_range(offset.y, heightmap.get_height()-offset.y))
+		## Add new curve when starting from new position.
+		#area_silhouette.agent_travel.append(Curve2D.new())
+	#
+
 
 
 ## Setup intial position and start generation.
 func start_generation():
 	# Prepare agent starting state.
-	tokens = parameters.initial_tokens
+	parameters = { "hill": terrain_image.features["kallioalue"] }
+	
+	tokens = round(parameters["hill"].density / 10)
 	rng.set_seed(seed)
 	rng.set_state(state)
 	_load_brush()
@@ -75,6 +124,6 @@ func start_generation():
 
 
 func _load_brush():
-	brush = preload("res://addons/kuikka_terrain_gen/brushes/128_gaussian.png").get_image()
+	brush = preload("res://addons/kuikka_terrain_gen/brushes/128_gaussian_light.png").get_image()
 	brush.resize(brush_size, brush_size)
-	_modulate_brush_alpha(parameters.blend_weight)
+	_modulate_brush_alpha(0.5)

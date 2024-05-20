@@ -33,6 +33,7 @@ func _init(c:=Vector2i.ZERO, r:=1.0, w:=1.0, img_path:String="", op_seed: int=0)
 	weight = w
 	
 	blend_mask.resize(radius*2, radius*2)
+	# blend_mask = KuikkaUtils.image_mult_alpha(blend_mask, 0.3)
 	height_sample = img_path
 	
 	_rng.set_seed(op_seed)
@@ -57,11 +58,17 @@ func setup_operations():
 ## through genetic operations and return resulting [Image].
 func apply_genetic_operations(apply_weights:=false) -> Image:
 	var _sample: Image = load(height_sample).get_image()
+	var path = Chromosome.TEMP_PATH+str(get_instance_id())+".png"
+	
+	# Save original height sample as image.
+	_sample.save_png(path)
+	
 	_sample.resize(radius*2, radius*2)
 	
-		# Apply operations
+	# Apply operations
 	for op in genetic_operations:
-		_sample = op.apply_operation(_sample)
+		#_sample = op.apply_operation(_sample)
+		op.apply_operation_path(path)
 	
 	if not apply_weights:
 		return _sample
@@ -69,8 +76,8 @@ func apply_genetic_operations(apply_weights:=false) -> Image:
 	# Blend height sample with mask and gene weights.
 	var format = _sample.get_format()
 	var size = radius*2
-	var rect = Rect2i(Vector2i.ZERO, 
-						Vector2i(_sample.get_width(), _sample.get_height()))
+	var origin = Vector2i.ZERO + round(size - _sample.get_width())
+	var rect = Rect2i(origin, Vector2i(_sample.get_width(), _sample.get_height()))
 						
 	var _processed_sample = Image.create(size, size, false, _sample.get_format())
 	_processed_sample.blend_rect_mask(_sample, blend_mask, rect, Vector2i.ZERO)

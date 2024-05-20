@@ -7,10 +7,11 @@ signal database_ready
 signal populations_generated
 signal setup_completed
 signal heightmap_completed(hmap: Image)
+signal fittest_resolved(agent, fittest)
 
 @export var chromosomes : Dictionary
 
-
+var blend_mask : Image = preload("res://addons/kuikka_terrain_gen/brushes/128_gaussian_light.png").get_image()
 var _rng : RandomNumberGenerator = RandomNumberGenerator.new()
 
 ## Generation seed for RNG
@@ -42,6 +43,10 @@ var _threadpool_keys = []
 
 ## Save parameters for WorkerThreadPool tasks to use.
 var _parameters : KuikkaTerrainGenParams
+
+## Save terrain image for WorkerThreadPool tasks to use.
+var _terrain_image : TerrainFeatureImage
+
 ## Only run generation when free.
 var _tasks_running = false
 
@@ -122,7 +127,7 @@ func initialize_populations(parameters: KuikkaTerrainGenParams, areas: Dictionar
 			var chr = Chromosome.new()
 			chr.reference_fitness = parameters.area_fitness[agent]
 			chr.sample_pool.append_array(height_database.get_samples(agent))
-			chr.create_genes(areas[agent], seed, state)
+			chr.create_genes(areas[agent], seed, state, heightmap)
 			chromosomes[agent].append(chr)
 	
 	print_debug("Populations setup.")
@@ -159,26 +164,159 @@ func generate_result(fittest: Dictionary) -> Image:
 	for agent in fittest:
 		var chromosome = fittest[agent]
 		
+		# print_debug(chromosome, " ", chromosome.genes)
+		
 		# Apply each gene effect to heightmap at given position.
 		for gene : Gene in chromosome.genes:
-			var result = gene.apply_genetic_operations(true)
+			
+			# print_debug("gene ", gene.get_instance_id(), " ", gene.center)
+			
+			var result = gene.apply_genetic_operations()# true)
 			var rad = Vector2i(gene.radius, gene.radius)
 			var source_rect = Rect2i(Vector2i.ZERO, 
 								Vector2i(result.get_width(), result.get_height()))
 			# result = KuikkaUtils.image_mult_alpha(result, gene.weight)
 			
 			# Create weighted blend mask
-			var mask = Image.create(result.get_width(), result.get_height(), false, heightmap.get_format())
-			mask.fill(Color(1, 1, 1, gene.weight))
-			
+			var mask = blend_mask
+			mask.resize(result.get_width(), result.get_height(), Image.INTERPOLATE_LANCZOS)
+			var tile = result.duplicate()
 			# Convert to match heightmap format.
+			tile.convert(heightmap.get_format())
 			result.convert(heightmap.get_format())
+			mask.convert(heightmap.get_format())
 			
-			# Blend formats don't match
-			heightmap.blend_rect_mask(result, mask, source_rect, Vector2i(gene.center-rad))
+			# mask = KuikkaUtils.image_set_alpha(mask, 1)
+			tile = KuikkaUtils.images_blend_alpha(result, mask)
+			tile = KuikkaUtils.image_mult_alpha(tile, gene.weight*0.8)
+			
+			heightmap.blend_rect_mask(tile, mask, source_rect, Vector2i(gene.center-rad))
 	
 	heightmap_completed.emit(heightmap)
 	return heightmap
+
+
+## * * * * * * * * 
+## TerrainFeatureImage based solution.
+func run_evolution_process_image(terrain_image: TerrainFeatureImage):
+	# run_evolution_process_image_threaded(terrain_image)
+	run_evolution_process_image_single_thread(terrain_image)
+
+
+func setup_database_from_image(terrain_image: TerrainFeatureImage):
+	# Use preset database if defined.
+	if terrain_image.database:
+		print_debug("Using sample database from terrain image.")
+		height_database = terrain_image.database
+	else:
+		# FIXME: Useless as this is always empty and 
+		# there is no samples to use by default.
+		print_debug("No sample database in terrain image. Creating new empty database.")
+		height_database = HeightSampleDB.new()
+	
+	sort_height_samples_from_image(terrain_image)
+
+
+func setup_handler_from_image(terrain_image : TerrainFeatureImage, hmap: Image):
+	heightmap = hmap
+	setup_database_from_image(terrain_image)
+	setup_completed.emit()
+
+
+func sort_height_samples_from_image(terrain_image: TerrainFeatureImage):
+	# Use preset database if defined.
+	if not height_database:
+		height_database = terrain_image.database if terrain_image.database else HeightSampleDB.new()
+	
+	# Generate new database.
+	var ref_features = terrain_image.features
+	
+	# Initialize empty data
+	for feature in ref_features:
+		height_database.samples.clear()
+		height_database.samples[feature] = []
+		# print_debug("Fitness <", agent,">")
+	
+	# Add each height sample to pool of best matching area.
+	print_debug("Sorting image pools for agents.")
+	
+	var samples_total = height_database.unsorted_samples.size()
+	print_debug("Iterating ", samples_total, " samples.")
+	for i in samples_total:
+		var sample = height_database.unsorted_samples[i]
+		# print_debug(sample)
+		if FileAccess.file_exists(sample):
+			# var img = load(sample).get_image() # Image.load_from_file(sample)# 
+			
+			# HACK: Speed up evaluation by resizing images.
+			# img.resize(img.get_width()/4, img.get_height()/4)
+			
+			var key = await evaluate_best_agent_from_feature(sample, ref_features)
+			height_database.append_sample(key, sample)
+			
+			if i % 50 == 0:
+				print_debug("Sorting height samples. Progress ", i, " / ", samples_total)
+		# Remove invalid samples.
+		else:
+			height_database.unsorted_samples.erase(sample)
+	
+	# TODO: Save as resource if necessary
+	# ResourceSaver.save(height_database)
+	
+	print_debug("Database setup.")
+	database_ready.emit()
+
+
+## Initialize first generation of chromosome populations for agent areas.
+func initialize_populations_from_image(terrain_image: TerrainFeatureImage, areas: Dictionary):
+	for agent in areas:
+		chromosomes[agent] = []
+		
+		print_debug("Generating population for ", agent)
+		# Create population amount of chromosomes for each area.
+		for i in terrain_image.evolution.population_size:
+			var chr = Chromosome.new()
+			chr.ref_image = terrain_image
+			chr.sample_pool.append_array(height_database.get_samples(agent))
+			
+			# Add random samples if chr sample_pool is empty.
+			if chr.sample_pool.size() == 0:
+				var keys = chromosomes.keys().size() if chromosomes.keys().size() > 0 else 1
+				var sample_size = height_database.unsorted_samples.size()
+				for j in _rng.randi_range(sample_size/keys/2, sample_size/keys):
+					chr.sample_pool.append(height_database.unsorted_samples[_rng.randi_range(0, sample_size-1)])
+			
+			chr.create_genes(areas[agent], seed, state, heightmap)
+			chromosomes[agent].append(chr)
+	
+	print_debug("Populations setup.")
+	populations_generated.emit()
+
+
+## Evaluate best agent for image sample based on linked
+## [TerrainFeature] generation height values.
+func evaluate_best_agent_from_feature(img_path: String, ref_features: Dictionary):
+	var stats : HeightProfile = await TerrainParser._parse_heightmap(img_path)
+	
+	var best = ""
+	var fittest = -1
+	
+	# Find best match for source height samples.
+	for ref in ref_features:
+		# TODO:
+		# Offset fitness by size of already accumulated samples so that not all
+		# samples are added under single agent even if biome types resemble
+		# each other closely.
+		var existing_samples = height_database.get_samples(ref).size()
+		
+		# Compare sample height profile to feature generation height values
+		# and find match with smallest value.
+		var new_result = stats.compare_tf(ref_features[ref]) # +0.1*existing_samples
+
+		if fittest < 0 or new_result < fittest:	
+			fittest = new_result
+			best = ref
+	return best
 
 
 ## * * * * Single thread evolution * * * * 
@@ -265,6 +403,175 @@ func _generate_new_population(parameters: KuikkaTerrainGenParams,
 
 ## * * * Threadpool evolution * * * 
 
+## TerrainFeatureImage version
+
+func run_evolution_process_image_single_thread(terrain_image: TerrainFeatureImage):
+	if _tasks_running:
+		printerr("Cannot run genetic evolution! Another task is already running.")
+		return
+	_tasks_running = true
+	
+	print_debug("Starting evolution process with ", " generations: ", terrain_image.evolution.generations, 
+	" population size: ", terrain_image.evolution.population_size)
+	
+	# Get list of agents with allocated chromosomes.
+	_threadpool_keys = chromosomes.keys()
+	_fittest.clear()
+	_terrain_image = terrain_image
+	
+	fittest_resolved.connect(func(agent, fittest): 
+		print_debug("Set fittest for agent ", agent)
+		_fittest[agent] = fittest)
+	
+	for i in _threadpool_keys.size():
+		_run_evolution_gen_image_agent(i)
+	
+	print_debug("Finished evolution iterations.")
+	
+	# print_debug("Fittest ", _fittest)
+	generate_result(_fittest)
+	_tasks_running = false
+	
+	# heightmap_completed.emit(heightmap)
+	return heightmap
+
+
+func run_evolution_process_image_threaded(terrain_image: TerrainFeatureImage):
+	if _tasks_running:
+		printerr("Cannot run genetic evolution! Another task is already running.")
+		return
+	_tasks_running = true
+	
+	print_debug("Starting evolution process with ", " generations: ", terrain_image.evolution.generations, 
+	" population size: ", terrain_image.evolution.population_size)
+	
+	# Get list of agents with allocated chromosomes.
+	_threadpool_keys = chromosomes.keys()
+	_fittest.clear()
+	_terrain_image = terrain_image
+	
+	fittest_resolved.connect(func(agent, fittest): 
+		print_debug("Set fittest for agent ", agent)
+		_fittest[agent] = fittest)
+	
+	# Run given generation amount of evolutions
+	# and get the fittest of each population.
+	var task = WorkerThreadPool.add_group_task(_run_evolution_gen_image_agent, _threadpool_keys.size())
+
+	# Generate resulting heightmap
+	# WorkerThreadPool.wait_for_group_task_completion(task)
+	print_debug("Waiting for evolution to finish...")
+	while not WorkerThreadPool.is_group_task_completed(task):
+		await KuikkaTimer.create_timer(5).timeout
+	
+	print_debug("Finished evolution iterations.")
+	
+	print_debug("Fittest ", _fittest)
+	generate_result(_fittest)
+	_tasks_running = false
+	
+	heightmap_completed.emit(heightmap)
+	return heightmap
+
+
+func _run_evolution_gen_image_agent(index : int):
+	var agent : String = _threadpool_keys[index]
+	var population : Array = chromosomes[agent]
+	var parameters = _terrain_image
+		
+	# Run given amount of evolutions
+	for gen in parameters.evolution.generations-1:
+		population = await _evolution_step_agent_from_image(parameters, population)
+	
+	var fittest : Chromosome = (await _evolve_population_from_image(population))[0]
+	
+	# Save result in main thread on idle frame.
+	# _thread_save_result.call_deferred(agent, fittest)
+	# _thread_save_result(agent, fittest)
+	_fittest[agent] = fittest
+	return fittest
+
+
+## Same as [method _evolve_population] but using [TerrainFeatureImage] 
+## extracted from data instead of user parameters [KuikkaTerrainGenParams].
+func _evolve_population_from_image(population: Array) -> Array:
+	var new_parents = []
+	var fitness = []
+	for chr : Chromosome in population:
+		fitness.append(await chr.evaluate_height_profile())
+	
+	# Get best fit for parent
+	var min_idx = fitness.find(fitness.min())
+	new_parents.append(population[min_idx])
+	fitness.remove_at(min_idx)
+	
+	# Get second best fit for parent
+	min_idx = fitness.find(fitness.min())
+	new_parents.append(population[min_idx])
+	
+	return new_parents
+	
+	
+## Same as [method _evolve_step_agent] but using [TerrainFeatureImage] 
+## extracted from data instead of user parameters [KuikkaTerrainGenParams].
+func _evolution_step_agent_from_image(terrain_image: TerrainFeatureImage, population: Array) -> Array:
+	var new_generation = []
+	
+	var parents = await _evolve_population_from_image(population)
+	new_generation = _generate_new_population_from_image(terrain_image, parents[0], parents[1])
+		
+	return new_generation	
+
+
+## Same as [method _generate_new_population] but using [TerrainFeatureImage] 
+## extracted from data instead of user parameters [KuikkaTerrainGenParams].
+func _generate_new_population_from_image(terrain_image: TerrainFeatureImage, 
+									parent_a: Chromosome, parent_b: Chromosome):
+	var new_population = []
+	var population_size = terrain_image.evolution.population_size
+	
+	# Population size is always rounded to even number.
+	for n in ceil(population_size/2):
+		var child_1: Chromosome = parent_a.duplicate()
+		var child_2: Chromosome = parent_b.duplicate()
+		child_1.sample_pool = parent_a.sample_pool
+		child_2.sample_pool = parent_b.sample_pool
+		
+		# Crossover
+		child_1.genes = []
+		child_2.genes = []
+		var split_a = _rng.randi_range(1, parent_a.genes.size()-2)
+		var split_b = _rng.randi_range(1, parent_b.genes.size()-2)
+		
+		var start_seq_1 = parent_a.genes.slice(0, split_a)
+		var end_seq_1 = parent_b.genes.slice(split_b, parent_b.genes.size()-1)
+		
+		var start_seq_2 = parent_b.genes.slice(0, split_b)
+		var end_seq_2 = parent_a.genes.slice(split_a, parent_a.genes.size()-1)
+										
+		child_1.genes.append_array(start_seq_1)
+		child_1.genes.append_array(end_seq_1)
+		
+		child_2.genes.append_array(start_seq_2)
+		child_2.genes.append_array(end_seq_2)
+	
+		# Mutations
+		for g in child_1.genes:
+			if _rng.randf_range(0, 1) <= terrain_image.evolution.mutation_chance:
+				_mutate_gene(g)
+				
+		for g in child_2.genes:
+			if _rng.randf_range(0, 1) <= terrain_image.evolution.mutation_chance:
+				_mutate_gene(g)
+		
+		# Add created children as part of the new population.
+		new_population.append_array([child_1, child_2])
+		
+	return new_population
+
+
+## TerrainGenParameter version
+
 ## Run full evolution process for chromosomes and calculate resulting 
 ## heightmap in using threadpools with parameters specified by 
 ## given [KuikkaTerrainGenParams][param parameters].
@@ -313,9 +620,9 @@ func _run_evolution_gen_agent(index : int):
 	
 	var fittest : Chromosome = _evolve_population(population)[0]
 	
-	# Save result in main thread on idle frame.
-	_thread_save_result.call_deferred(agent, fittest)
-	
+	# Save result in main thread.
+	fittest_resolved.emit(agent, fittest)
+	# _thread_save_result.call_deferred(agent, fittest)
 	return fittest
 
 
