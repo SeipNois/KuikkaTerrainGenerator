@@ -18,7 +18,11 @@ var blend_mask : Image = preload("res://addons/kuikka_terrain_gen/brushes/128_ga
 ## File path of height sample to use as basis for calculating result
 ## with operations.
 @export var height_sample : String
-@export var genetic_operations : Array[GeneticOperation]
+
+## File path of height sample to use as alpha mask for blending operation.
+@export var alpha_mask_sample: String
+
+var genetic_operations : Array[GeneticOperation]
 
 #var _processed_sample : Image
 
@@ -57,32 +61,38 @@ func setup_operations():
 ## Process given height sample from file [member height_sample] 
 ## through genetic operations and return resulting [Image].
 func apply_genetic_operations(apply_weights:=false) -> Image:
-	var _sample: Image = load(height_sample).get_image()
-	var path = Chromosome.TEMP_PATH+str(get_instance_id())+".png"
+	var _sample: Image = Image.load_from_file(height_sample)
+	var path = ProjectSettings.globalize_path(Chromosome.TEMP_PATH+str(get_instance_id())+".png")
 	
 	# Save original height sample as image.
-	_sample.save_png(path)
-	
 	_sample.resize(radius*2, radius*2)
 	
-	# Apply operations
-	for op in genetic_operations:
-		#_sample = op.apply_operation(_sample)
-		op.apply_operation_path(path)
+	_sample.save_png(path)
+	_sample = Image.load_from_file(path)
 	
-	if not apply_weights:
-		return _sample
+	if apply_weights:
+		# Apply operations
+		for op in genetic_operations:
+			# print_debug("Commencing operation ", op.name, " on ", _sample)
+			# _sample = await op.apply_operation(_sample)
+			_sample = await op.apply_operation_path(path)
+			
+			var mean = await KuikkaImgUtil.im_fetch_img_stats(path)
+			if mean == 0:
+				printerr("Failed genetic operation with ", op, " operation of total \n", genetic_operations)
 	
-	# Blend height sample with mask and gene weights.
-	var format = _sample.get_format()
-	var size = radius*2
-	var origin = Vector2i.ZERO + round(size - _sample.get_width())
-	var rect = Rect2i(origin, Vector2i(_sample.get_width(), _sample.get_height()))
-						
-	var _processed_sample = Image.create(size, size, false, _sample.get_format())
-	_processed_sample.blend_rect_mask(_sample, blend_mask, rect, Vector2i.ZERO)
+	#await _sample.save_png(path)
+	
+	# Refresh image
+	#_sample = Image.load_from_file(path)
+	
+	return _sample
 
-	return _processed_sample
+
+func get_image_stats():
+	var path = Chromosome.TEMP_PATH+str(get_instance_id())+".png"
+	var stats = await KuikkaImgUtil.im_fetch_img_stats(path)
+	return stats
 
 
 ## Mutate genetic operation by replacing with new operation.
@@ -98,3 +108,10 @@ func mutate_operation(index: int) -> void:
 func mutate_operation_weight(index: int) -> void:
 	genetic_operations[index].strength = _rng.randf_range(0.0, 1.0)
 	return
+
+
+# Remove temp image file
+func clear_temp_files():
+	var path = ProjectSettings.globalize_path(Chromosome.TEMP_PATH+str(get_instance_id())+".png")
+	if FileAccess.file_exists(path):
+		DirAccess.remove_absolute(ProjectSettings.globalize_path(path))

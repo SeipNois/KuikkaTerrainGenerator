@@ -10,7 +10,7 @@ class_name KuikkaTerrainAgent extends Node
 
 
 ## Method used to place genes in area silhouette.
-enum GeneDistribute {RECT, DELAUNAY, CONCAVE}
+enum GeneDistribute {DIRECT, LINEAR, RECT, DELAUNAY, CONCAVE}
 
 signal generation_finished(agent: KuikkaTerrainAgent)
 signal generation_step
@@ -27,6 +27,8 @@ var terrain_image : TerrainFeatureImage
 var parameters : Dictionary = {}
 
 var agent_type : StringName = ""
+
+var blend_multiplier : float = 0.05
 
 ## RNG for making random actions in deterministic way
 var rng : WeightedRNG = WeightedRNG.new()
@@ -60,11 +62,12 @@ var tokens: int = 0:
 ## Mapped area of effect
 var area_silhouette : Dictionary = {
 	"agent_travel" :  [],
-	"covered_points" : [], # Array of Array[Vector2i]
-	"covered_rect" : [],	# Array of Array[Rect2D]
+	"covered_points" : [], # Array of Array[Vector2i] of travel center points.
+	"covered_rect" : [],	# Array of Array[Vector2i] of travel coverage rect corner points.
 	"gene_points" : [], 	# Array of Vector2
 	"gene_weights": [], # Array of float,
-	"gene_mask": gene_mask # Image
+	"gene_mask": gene_mask, # Image,
+	"voronoi": [] # Array of Delaunay.VoronoiSite
 }
 
 ## Offset for blending brush rect centered around point.
@@ -133,27 +136,63 @@ func _create_gene_map():
 		GeneDistribute.DELAUNAY:
 			_genes_triangulated_bounding_box()
 		# GeneDistribute.CONCAVE:
+		GeneDistribute.DIRECT:
+			_genes_travel_direct()
 		_:
-			_genes_bounding_box()
-	
+			_genes_travel_linear()
+		
 	area_silhouette["gene_mask"] = gene_mask
+
 
 ## --- Gene coverage options ---
 
+func _genes_travel_linear():
+	print_debug("Using linear travel placement for gene points.")
+	var points = []
+	
+	for item in area_silhouette.covered_points:
+		points.append_array(item)
+	
+	
+	points = KuikkaUtils.merge_points_by_distance(points, terrain_image.evolution.gene_point_size)
+	area_silhouette.gene_points = points
+	return
+
+
+func _genes_travel_direct():
+	print_debug("Using direct travel placement for gene points.")
+	var points = []
+	
+	for item in area_silhouette.covered_points:
+		points.append_array(item)
+	
+	area_silhouette.gene_points = points
+	return
+
+
 ## Create gene placements from bounding rectangle.
 func _genes_bounding_box():
+	print_debug("Using bounding rect placement for gene points.")
 	var points = []
 	var weights = []
 	
-	for travel in area_silhouette.covered_points:
-		points.append_array(travel)
+	for i in area_silhouette.covered_points.size():
+		var travel = area_silhouette.covered_points[i]
+		var rect = area_silhouette.covered_rect[i]
+		
+		points.append_array(area_silhouette.covered_points[i])
 		# Get weight from effect area mask alpha
-		weights.append_array(travel.map(func(p): 
-			if p.x > 0 and p.x < gene_mask.get_width() and \
-			p.y > 0 and p.y < gene_mask.get_height():
-				return gene_mask.get_pixel(p.x, p.y).a
-			else:
-				return 1.0))
+		points.append_array(area_silhouette.covered_rect[i])
+	
+	# Merge by distance
+	points = KuikkaUtils.merge_points_by_distance(points, terrain_image.evolution.gene_point_size)
+	
+	weights.append_array(points.map(func(p): 
+		if p.x > 0 and p.x < gene_mask.get_width() and \
+		p.y > 0 and p.y < gene_mask.get_height():
+			return gene_mask.get_pixel(p.x, p.y).a
+		else:
+			return 1.0))
 	
 	area_silhouette.gene_points = points
 	area_silhouette.gene_weights = weights
@@ -162,6 +201,7 @@ func _genes_bounding_box():
 
 ## Create gene placements as points from delaunay triangulation.
 func _genes_triangulated_bounding_box():
+	print_debug("Using Delaunay triangulation placement for gene points.")
 	# TODO: weights
 	var weights = []
 	
@@ -231,8 +271,8 @@ func _map_covered_points():
 		# Add bounding square/rectangle of each travel point
 		# to points covered by the final polygon of the travel.
 		for p in curve.get_baked_points():
-			points.append_array(_get_covered_points(p, offset))
-			rects.append(_get_covered_rectangle(p, offset))
+			points.append(p)
+			rects.append_array(_get_covered_points(p, offset, false))
 		
 		area_silhouette.covered_points.append(points)
 		area_silhouette.covered_rect.append(rects)

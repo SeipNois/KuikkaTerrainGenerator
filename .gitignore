@@ -7,3 +7,4 @@ project/addons/kuikka_terrain_gen/height_samples/*
 *.tmp
 project/generated/*
 project/image_exports/*
+project/result_comparison/*

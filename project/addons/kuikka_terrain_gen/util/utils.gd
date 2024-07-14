@@ -17,10 +17,21 @@ static func rand_string(length : int):
 ## Calculate mean value from array of floats.
 static func mean(values : Array) -> float:
 	var sum = 0
-	values.reduce(func(sum, n): return sum + n, sum)
+	sum = values.reduce(func(sum, n): return sum + n, sum)
 	if values.size() == 0:
 		return 0
 	return sum / values.size()
+
+
+## Calculate mean value from array of Vector2s.
+static func mean_vect2(values : Array) -> Vector2:
+	var sum = Vector2.ZERO
+	sum = values.reduce(func(sum, n): return sum + n, sum)
+	
+	if values.size() == 0:
+		return Vector2.ZERO
+	return sum / values.size()
+
 
 ## Calculate standard deviation from array of floats.
 static func standard_deviation(values: Array, mean: float) -> float:
@@ -177,59 +188,7 @@ static func parse_image_path_batch(path: String, batch_size: int = -1) -> Array[
 	else:
 		printerr("Error opening directory <", gpath, ">" )
 		return []
-
-
-static func image_mult_alpha(img: Image, mult: float) -> Image:
-	var w = img.get_width()
-	var h = img.get_height()
-	var size = w*h
-	
-	for i in size:
-		var x = i % w
-		var y = floor(i / w)
 		
-		var color = img.get_pixel(x, y)
-		color.a = color.a * mult
-		img.set_pixel(x, y, color)
-	return img
-
-
-static func image_set_alpha(img: Image, val: float) -> Image:
-	var w = img.get_width()
-	var h = img.get_height()
-	var size = w*h
-	
-	for i in size:
-		var x = i % w
-		var y = floor(i / w)
-		
-		var color = img.get_pixel(x, y)
-		color.a = val
-		img.set_pixel(x, y, color)
-	return img
-
-
-static func images_blend_alpha(img: Image, alpha_image: Image) -> Image:
-	var w = img.get_width()
-	var h = img.get_height()
-	var size = w*h
-	var result = img.duplicate()
-	
-	if alpha_image.get_width() != img.get_width() or \
-	alpha_image.get_height() != img.get_height():
-		printerr("Aplha blending images requires mask to be same size as source image!")
-		return img
-	
-	for i in size:
-		var x = i % w
-		var y = floor(i / w)
-		
-		var color = result.get_pixel(x, y)
-		var acolor = alpha_image.get_pixel(x, y)
-		color.a = acolor.a
-		result.set_pixel(x, y, color)
-	return result
-	
 	
 ## Similar to [method Array.filter] but returns the first
 ## item in array that fulfills given condition.
@@ -243,3 +202,73 @@ static func array_find_first(array: Array, condition: Callable):
 			return item
 	
 	return null
+
+
+## Similar to [method Array.filter] but returns the index of first
+## item in array that fulfills given condition.
+## [param array] [Array] to search
+## [param condition] [Callable] Condition that called with array item
+## 								should return true or false based on
+##								condition fullfilment by item.
+static func array_find_index(array: Array, condition: Callable):
+	for i in array.size():
+		if condition.call(array[i]):
+			return i
+	
+	return -1
+
+
+## Merge points in 2D point cloud by distance.
+## [param cloud] 	Array of points to consider.
+## [param treshold] Minimum distance at which to merge.
+static func merge_points_by_distance(cloud: Array, treshold: float):
+	var result = []
+	
+	# Assigned group indexes for points
+	var assigned = {}
+	
+	var groups = []
+	var new_group = []
+	var index = -1
+	
+	print_debug("Starting merge with point cloud size ", cloud.size())
+	
+	for i in cloud.size():
+		var p : Vector2 = cloud[i]
+		# Group with already considered points if assigned. 
+		# Otherwise create new group.
+		if not assigned.has(p):
+			index += 1
+			groups.append([p])
+			assigned[p] = index
+		
+		# Compare against new points
+		for j in range(i+1, cloud.size()):
+			var r : Vector2 = cloud[j]
+			if p.distance_to(r) < treshold:
+				groups[index].append(r)
+				assigned[r] = index
+	
+	# Calculate average for each group
+	for g in groups:
+		if g.size() > 1:
+			var new_point = mean_vect2(g)
+			result.append(new_point)
+		else:
+			result.append(g[0])
+	
+	print_debug("Merged point groups to size ", result.size())
+	
+	return result
+
+
+## Call [Callable] [param callable] for node and all its recursive children.
+## NOTE: Callable should have [param node] as its first argument.
+static func call_callable_tree_recursive(node: Node, callable: Callable, args: Array):
+	# bindv() bound arguments are passed after call() arguments
+	callable.bindv(args).call(node)
+	
+	# Call for children
+	for child in node.get_children():
+		call_callable_tree_recursive(child, callable, args)
+	return

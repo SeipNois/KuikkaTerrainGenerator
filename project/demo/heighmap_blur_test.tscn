@@ -1,0 +1,82 @@
+[gd_scene load_steps=13 format=3 uid="uid://dv6xjgsumu2kl"]
+
+[ext_resource type="Terrain3DStorage" uid="uid://bht1ftljwiy0c" path="res://demo/new_terrain_3d_storage.res" id="1_odae5"]
+[ext_resource type="Script" path="res://demo/heighmap_blur_test.gd" id="1_sr2oy"]
+[ext_resource type="Script" path="res://demo/character.gd" id="3_po504"]
+[ext_resource type="PackedScene" uid="uid://bfcxy08koj6as" path="res://demo/demo_camera.tscn" id="4_fq63s"]
+
+[sub_resource type="Gradient" id="Gradient_ppx73"]
+offsets = PackedFloat32Array(0.2, 1)
+colors = PackedColorArray(1, 1, 1, 1, 0, 0, 0, 1)
+
+[sub_resource type="FastNoiseLite" id="FastNoiseLite_x63hj"]
+noise_type = 2
+frequency = 0.03
+cellular_jitter = 3.0
+cellular_return_type = 0
+domain_warp_enabled = true
+domain_warp_type = 1
+domain_warp_amplitude = 50.0
+domain_warp_fractal_type = 2
+domain_warp_fractal_lacunarity = 1.5
+domain_warp_fractal_gain = 1.0
+
+[sub_resource type="NoiseTexture2D" id="NoiseTexture2D_efn7a"]
+seamless = true
+color_ramp = SubResource("Gradient_ppx73")
+noise = SubResource("FastNoiseLite_x63hj")
+
+[sub_resource type="Terrain3DMaterial" id="Terrain3DMaterial_4vapo"]
+_shader_parameters = {
+"_mouse_layer": 2147483648,
+"blend_sharpness": null,
+"height_blending": null,
+"macro_variation1": null,
+"macro_variation2": null,
+"noise1_angle": null,
+"noise1_offset": null,
+"noise1_scale": null,
+"noise2_scale": null,
+"noise3_scale": null,
+"noise_texture": SubResource("NoiseTexture2D_efn7a")
+}
+show_checkered = true
+show_grey = true
+show_vertex_grid = true
+
+[sub_resource type="Terrain3DTextureList" id="Terrain3DTextureList_oovmt"]
+
+[sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_gekgj"]
+
+[sub_resource type="Sky" id="Sky_nraq4"]
+sky_material = SubResource("ProceduralSkyMaterial_gekgj")
+
+[sub_resource type="Environment" id="Environment_iatmc"]
+background_mode = 2
+background_energy_multiplier = 3.0
+sky = SubResource("Sky_nraq4")
+sky_custom_fov = 80.5
+
+[node name="Node3D" type="Node3D"]
+script = ExtResource("1_sr2oy")
+
+[node name="Terrain3D" type="Terrain3D" parent="."]
+storage = ExtResource("1_odae5")
+material = SubResource("Terrain3DMaterial_4vapo")
+texture_list = SubResource("Terrain3DTextureList_oovmt")
+
+[node name="Terrain3D2" type="Terrain3D" parent="."]
+storage = ExtResource("1_odae5")
+material = SubResource("Terrain3DMaterial_4vapo")
+texture_list = SubResource("Terrain3DTextureList_oovmt")
+
+[node name="Character" type="Node3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 0.98717, 0.159674, 0, -0.159674, 0.98717, 0, 1.8, 0)
+script = ExtResource("3_po504")
+
+[node name="AxisX" type="Node3D" parent="Character"]
+
+[node name="DemoCamera" parent="Character/AxisX" instance=ExtResource("4_fq63s")]
+
+[node name="WorldEnvironment" type="WorldEnvironment" parent="."]
+environment = SubResource("Environment_iatmc")

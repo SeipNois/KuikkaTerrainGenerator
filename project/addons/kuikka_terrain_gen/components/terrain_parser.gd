@@ -9,8 +9,8 @@ var _feature_image : TerrainFeatureImage
 const HEIGHT_PROFILE_KEYS = ["min", "max", "mean", "median", "std_dev",
 		"kurtosis", "skewness", "entropy"]
 
-const TERRAIN_FEATURE_KEYS = ["min", "max", "mean", "median", "std_dev",
-		"kurtosis", "skewness", "entropy"]
+#const TERRAIN_FEATURE_KEYS = ["min", "max", "mean", "median", "std_dev",
+		#"kurtosis", "skewness", "entropy"]
 
 ## Names of features from gml data to generate features for.
 const FEATURE_NAMES = {
@@ -68,28 +68,26 @@ func parse_data(hmaps: Array, gml: Array, parameters: ImageGenParams):
 	
 	return _feature_image
 
-
-## Normalize TerrainFeatureImage values to range 
-func normalize_image():
-	pass	
-	
 	
 func _image_scale_size_values(image, parameters: ImageGenParams):
 	for key in image.features:
 		image.features[key] = _feature_scale_size_values(
 										image.features[key], parameters)
+										
+		# Single GML density is for image of size 6000 pixels.
+		image.features[key].density /= 10 # round(parameters.width / 600)
 	
 
 # Scale gml values by given factor
 func _feature_scale_size_values(feature: TerrainFeature, parameters: ImageGenParams):
 	var factor = 2
-	feature.density /= factor
 	feature.size_max /= factor
 	feature.size_min /= factor
 	feature.size_mean /= factor
 	feature.size_median /= factor
 	feature.size_std_dev /= factor
 	return feature
+
 
 ## Create TerrainFeatureImage content from heightmaps.
 func parse_heightmap_data(hmaps:Array):
@@ -102,9 +100,10 @@ func parse_heightmap_data(hmaps:Array):
 	
 	# If only one heightmap is used, use its result as profile.
 	if results.size() == 1:
+		## FIXME: How are values scaled when outside 8 bit 0-255 range???
 		_feature_image.height_profile = results[0]
-		var h_stats = KuikkaImgUtil.gdal_fetch_img_stats(hmaps[0])
-		_feature_image.height_profile.height_range = Vector2(h_stats["min"], h_stats["max"])
+		#var h_stats = KuikkaImgUtil.gdal_fetch_img_stats(hmaps[0])
+		_feature_image.height_profile.height_range = Vector2(0, 255)# Vector2(h_stats.min, h_stats.max)
 		
 	# Create resulting profile as mean of heightmaps
 	else:
@@ -114,11 +113,12 @@ func parse_heightmap_data(hmaps:Array):
 			results.reduce(func(s, x): return s+x[key], value)
 			profile.set(key, value/len)
 			
-		# TODO: Resolve with different range for different heightmap
-		# when using multiple maps.
-		var h_stats = KuikkaImgUtil.gdal_fetch_img_stats(hmaps[0])
+		## TODO: Resolve with different range for different heightmap
+		## FIXME: How are values scaled when outside 8 bit 0-255 range???
+		## when using multiple maps.
+		#var h_stats = KuikkaImgUtil.gdal_fetch_img_stats(hmaps[0])
 		
-		profile.height_range = Vector2(h_stats["min"], h_stats["max"])
+		profile.height_range = Vector2(0, 255)# Vector2(h_stats.min, h_stats.max)
 		_feature_image.height_profile = profile
 
 
@@ -145,7 +145,7 @@ func parse_gml_data(files:Array):
 			# print_debug("D ", feature.density)
 			
 		feature.divide_by(len)
-		
+		feature.feature_name = key
 		_feature_image.features[key] = feature
 		
 		# print_debug(_feature_image.features.keys())
@@ -153,7 +153,7 @@ func parse_gml_data(files:Array):
 
 ## Parse values from single heightmap.
 static func _parse_heightmap(path: String) -> HeightProfile:
-	var parsed = await KuikkaImgUtil.img_get_stats(path)
+	var parsed = await KuikkaImgUtil.img_get_stats(path)#, false, true)
 	
 	if parsed and parsed.size() > 0:
 		

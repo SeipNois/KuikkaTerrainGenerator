@@ -16,7 +16,8 @@ var database : HeightSampleDB = HeightSampleDB.new()
 var evolution = {
 	"generations" : 3,
 	"population_size" : 6,
-	"mutation_chance": 0.2
+	"mutation_chance": 0.2,
+	"gene_point_size": 5
 }
 
 ## Set feature to value.

@@ -3,6 +3,12 @@ class_name EvolutionHandler extends Node
 ## Class for handling evaluation process of chromosome population for
 ## each terrain type area.
 
+const FEATURE_KEYS = {
+	"KuikkaLakeAgent": "jarvi",
+	"KuikkaHillAgent": "kallioalue",
+	"KuikkaMeadowAgent": "niitty"
+}
+
 signal database_ready
 signal populations_generated
 signal setup_completed
@@ -11,7 +17,12 @@ signal fittest_resolved(agent, fittest)
 
 @export var chromosomes : Dictionary
 
-var blend_mask : Image = preload("res://addons/kuikka_terrain_gen/brushes/128_gaussian_light.png").get_image()
+var gauss_mask : Image = preload("res://addons/kuikka_terrain_gen/brushes/128_gaussian_light.png").get_image()
+var diamond_mask : Image = preload("res://addons/kuikka_terrain_gen/brushes/128_diamond.png").get_image()
+var square_mask : Image = preload("res://addons/kuikka_terrain_gen/brushes/128_square.png").get_image()
+
+var blend_mask : Image = gauss_mask
+
 var _rng : RandomNumberGenerator = RandomNumberGenerator.new()
 
 ## Generation seed for RNG
@@ -50,6 +61,9 @@ var _terrain_image : TerrainFeatureImage
 ## Only run generation when free.
 var _tasks_running = false
 
+## Array of filepaths for gene temp images to be deleted when exitting tree.
+var _purge_list : Array = []
+
 
 func _exit_tree():
 	# Remove temp files for split height samples.
@@ -57,7 +71,24 @@ func _exit_tree():
 		for sample in height_samples:
 			print_debug("SHOULD REMOVE ", sample)
 			# DirAccess.remove_absolute(sample)
+	
+	delete_temp_files()
 
+## Queue gene output for deletion when done.
+func queue_for_purge(id):
+	if id not in _purge_list:
+		_purge_list.append(id)
+
+
+func delete_temp_files():
+	# Gene samples
+	for item in _purge_list:
+		var path = ProjectSettings.globalize_path(Chromosome.TEMP_PATH + str(item) + ".png")
+		if FileAccess.file_exists(path):
+			DirAccess.remove_absolute(path)
+	
+	_purge_list.clear()
+	
 
 ## Setup source heightmap for generation and the database of image samples.
 func setup_evolution_handler(parameters: KuikkaTerrainGenParams, hmap: Image):
@@ -102,7 +133,7 @@ func sort_height_samples(parameters):
 		var img = load(sample).get_image() # Image.load_from_file(sample)# 
 		
 		# HACK: Speed up evaluation by resizing images.
-		img.resize(img.get_width()/4, img.get_height()/4)
+		# img.resize(img.get_width()/4, img.get_height()/4)
 		
 		var key = evaluate_best_agent(img, ref_fitnesses)
 		height_database.append_sample(key, sample)
@@ -127,7 +158,7 @@ func initialize_populations(parameters: KuikkaTerrainGenParams, areas: Dictionar
 			var chr = Chromosome.new()
 			chr.reference_fitness = parameters.area_fitness[agent]
 			chr.sample_pool.append_array(height_database.get_samples(agent))
-			chr.create_genes(areas[agent], seed, state, heightmap)
+			chr.create_genes(areas[agent], seed, state, heightmap, _terrain_image.features[FEATURE_KEYS[agent]], self)
 			chromosomes[agent].append(chr)
 	
 	print_debug("Populations setup.")
@@ -169,30 +200,43 @@ func generate_result(fittest: Dictionary) -> Image:
 		# Apply each gene effect to heightmap at given position.
 		for gene : Gene in chromosome.genes:
 			
-			# print_debug("gene ", gene.get_instance_id(), " ", gene.center)
+			# print_debug("applying gene ", gene.get_instance_id(), " ", gene.center)
 			
-			var result = gene.apply_genetic_operations()# true)
-			var rad = Vector2i(gene.radius, gene.radius)
-			var source_rect = Rect2i(Vector2i.ZERO, 
-								Vector2i(result.get_width(), result.get_height()))
-			# result = KuikkaUtils.image_mult_alpha(result, gene.weight)
+			var result = await gene.apply_genetic_operations(false)
+			var gene_img_stats = await gene.get_image_stats()
+			var rad = Vector2i(result.get_width()/2, result.get_height()/2)
+			var source_rect = result.get_used_rect()
 			
 			# Create weighted blend mask
 			var mask = blend_mask
-			mask.resize(result.get_width(), result.get_height(), Image.INTERPOLATE_LANCZOS)
 			var tile = result.duplicate()
 			# Convert to match heightmap format.
 			tile.convert(heightmap.get_format())
-			result.convert(heightmap.get_format())
 			mask.convert(heightmap.get_format())
+			mask.resize(result.get_width(), result.get_height())
 			
-			# mask = KuikkaUtils.image_set_alpha(mask, 1)
-			tile = KuikkaUtils.images_blend_alpha(result, mask)
-			tile = KuikkaUtils.image_mult_alpha(tile, gene.weight*0.8)
+			#mask = KuikkaImgUtil.image_mult_alpha(mask, gene.weight)
 			
-			heightmap.blend_rect_mask(tile, mask, source_rect, Vector2i(gene.center-rad))
-	
+			#tile = KuikkaImgUtil.images_blend_alpha(result, mask)
+			# tile = KuikkaUtils.image_mult_alpha(tile, gene.weight*0.8)
+			
+			# Scale height values down to fit into image range.
+			#tile = KuikkaImgUtil.image_scale_values(tile, 0.85)
+			
+			var m_h = 0.5
+			if gene_img_stats.has("mean"):
+				m_h = gene_img_stats.mean
+			# print_debug("Blend offset ", m_h, " ", gene_img_stats.mean)
+			
+			tile = KuikkaImgUtil.images_blend_alpha(tile, mask)
+			#heightmap.blend_rect_mask(tile, mask, source_rect, Vector2i(gene.center-rad))
+			heightmap = KuikkaImgUtil.blend_mean_diff_mask(heightmap, tile, mask, source_rect, Vector2i(gene.center-rad), m_h)
+
 	heightmap_completed.emit(heightmap)
+	 
+	# Delete gene temp output
+	delete_temp_files.call_deferred()
+	
 	return heightmap
 
 
@@ -286,7 +330,7 @@ func initialize_populations_from_image(terrain_image: TerrainFeatureImage, areas
 				for j in _rng.randi_range(sample_size/keys/2, sample_size/keys):
 					chr.sample_pool.append(height_database.unsorted_samples[_rng.randi_range(0, sample_size-1)])
 			
-			chr.create_genes(areas[agent], seed, state, heightmap)
+			chr.create_genes(areas[agent], seed, state, heightmap, terrain_image.features[FEATURE_KEYS[agent]], self)
 			chromosomes[agent].append(chr)
 	
 	print_debug("Populations setup.")
@@ -694,5 +738,4 @@ func evaluate_best_agent(sample : Image, references: Dictionary):
 			best = ref
 	
 	return best
-
 

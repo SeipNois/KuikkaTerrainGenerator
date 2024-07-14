@@ -2,7 +2,7 @@
 
 [ext_resource type="Script" path="res://addons/kuikka_terrain_gen/util/image_utils.gd" id="1_dftjy"]
 [ext_resource type="Script" path="res://addons/kuikka_terrain_gen/external_bindings/gdal_functions.gd" id="1_x4g87"]
-[ext_resource type="Script" path="res://addons/kuikka_terrain_gen/image_magick.gd" id="2_ddxyp"]
+[ext_resource type="Script" path="res://addons/kuikka_terrain_gen/external_bindings/image_magick.gd" id="2_ddxyp"]
 
 [node name="ImageUtils" type="Node"]
 script = ExtResource("1_dftjy")

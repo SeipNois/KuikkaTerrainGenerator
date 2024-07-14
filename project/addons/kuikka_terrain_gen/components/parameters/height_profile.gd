@@ -18,7 +18,10 @@ class_name HeightProfile extends Resource
 ## how much values for each differ from each other.
 func compare(ref: HeightProfile):
 	return abs(min-ref.min) + abs(max-ref.max) + abs(mean-ref.mean) +\
-	abs(median-ref.median)+abs(std_dev-ref.std_dev)
+	abs(median-ref.median)+abs(std_dev-ref.std_dev)\
+	# Additional values
+	+abs(skewness-ref.skewness)+abs(entropy-ref.entropy)+abs(kurtosis-ref.kurtosis)
+
 
 ## Compare towards terrain feature generation values.
 func compare_tf(ref: TerrainFeature):
@@ -29,4 +32,6 @@ func compare_tf(ref: TerrainFeature):
 ## Check if all comparison values are valid
 func is_valid() -> bool:
 	return min and min != NAN and max and max != NAN and mean and mean != NAN\
-			and median and median != NAN and std_dev and std_dev != NAN
+			and median and median != NAN and std_dev and std_dev != NAN \
+			and kurtosis and kurtosis != NAN and skewness and skewness != NAN \
+			and entropy and entropy != NAN

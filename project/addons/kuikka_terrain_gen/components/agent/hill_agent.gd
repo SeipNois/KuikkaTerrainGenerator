@@ -27,11 +27,17 @@ func _generation_process():
 	# print_debug(h, " ", parameters["hill"].gen_height_min, 
 	#			" ", parameters["hill"].gen_height_max)
 				
-	if h > parameters["hill"].gen_height_min and \
+	if last_position.x > 0 and last_position.x < heightmap.get_width() and \
+	last_position.y > 0 and last_position.y < heightmap.get_height() and\
+	h > parameters["hill"].gen_height_min and \
 	h < parameters["hill"].gen_height_max:
-		heightmap.blend_rect(brush,
-					brush.get_used_rect(), 
-					last_position-offset)
+		
+		#heightmap.blend_rect(brush,
+					#brush.get_used_rect(), 
+					#last_position-offset)
+		heightmap = KuikkaImgUtil.blend_rect_diff(heightmap, brush, brush.get_used_rect(), 
+					last_position-offset, 0)
+					
 		gene_mask.blend_rect(brush,
 							brush.get_used_rect(), 
 							last_position-offset)
@@ -44,13 +50,13 @@ func _generation_process():
 	last_position = Vector2i(new_pos)
 	
 	# Select new movement direction
-	move_direction = move_direction.rotated(rng.randf_range(-90, 90))
+	move_direction = move_direction.rotated(rng.randf_range(-PI/2, PI/2))
 	
 	var treshold = area_silhouette
 	
 	# Randomize new position if out of bounds or jump treshold is reached.
-	if last_position.x < 0 or last_position.x >= heightmap.get_width() or \
-	last_position.y < 0 or last_position.y >= heightmap.get_height():
+	if last_position.x <= 0 or last_position.x >= heightmap.get_width() or \
+	last_position.y <= 0 or last_position.y >= heightmap.get_height():
 	# TODO: Jump treshold
 	# or \ rng.randf_range(0, 1) < treshold:
 		
@@ -96,8 +102,6 @@ func _generation_process():
 								#rng.randi_range(offset.y, heightmap.get_height()-offset.y))
 		## Add new curve when starting from new position.
 		#area_silhouette.agent_travel.append(Curve2D.new())
-	#
-
 
 
 ## Setup intial position and start generation.
@@ -105,7 +109,7 @@ func start_generation():
 	# Prepare agent starting state.
 	parameters = { "hill": terrain_image.features["kallioalue"] }
 	
-	tokens = round(parameters["hill"].density / 10)
+	tokens = round(parameters["hill"].density)
 	rng.set_seed(seed)
 	rng.set_state(state)
 	_load_brush()
@@ -126,4 +130,4 @@ func start_generation():
 func _load_brush():
 	brush = preload("res://addons/kuikka_terrain_gen/brushes/128_gaussian_light.png").get_image()
 	brush.resize(brush_size, brush_size)
-	_modulate_brush_alpha(0.5)
+	_modulate_brush_alpha(blend_multiplier)

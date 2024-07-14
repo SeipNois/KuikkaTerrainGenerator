@@ -1,0 +1,8 @@
+[gd_scene load_steps=2 format=3 uid="uid://corknsiyqsax5"]
+
+[ext_resource type="Script" path="res://addons/kuikka_terrain_gen/ui/agent_area_spec.gd" id="1_mo2mt"]
+
+[node name="AgentAreaSpec" type="VBoxContainer"]
+offset_right = 40.0
+offset_bottom = 40.0
+script = ExtResource("1_mo2mt")

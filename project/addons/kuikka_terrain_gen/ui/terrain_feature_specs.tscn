@@ -1,0 +1,170 @@
+[gd_scene load_steps=2 format=3 uid="uid://b1wpryfgdgjje"]
+
+[ext_resource type="Script" path="res://addons/kuikka_terrain_gen/ui/terrain_feature_specs.gd" id="1_tqhwx"]
+
+[node name="MarginContainer" type="MarginContainer"]
+custom_minimum_size = Vector2(240, 200)
+offset_right = 244.0
+offset_bottom = 336.0
+theme_override_constants/margin_left = 10
+theme_override_constants/margin_top = 10
+script = ExtResource("1_tqhwx")
+
+[node name="TerrainFeatureSpecs" type="VBoxContainer" parent="."]
+layout_mode = 2
+size_flags_horizontal = 4
+
+[node name="FeatureName" type="Label" parent="TerrainFeatureSpecs"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "FeatureName"
+
+[node name="Density" type="HBoxContainer" parent="TerrainFeatureSpecs"]
+unique_name_in_owner = true
+layout_mode = 2
+
+[node name="Label" type="Label" parent="TerrainFeatureSpecs/Density"]
+custom_minimum_size = Vector2(120, 0)
+layout_mode = 2
+text = "Density"
+
+[node name="Label2" type="Label" parent="TerrainFeatureSpecs/Density"]
+custom_minimum_size = Vector2(120, 0)
+layout_mode = 2
+
+[node name="HSeparator" type="HSeparator" parent="TerrainFeatureSpecs"]
+layout_mode = 2
+
+[node name="SizeMinValues" type="HBoxContainer" parent="TerrainFeatureSpecs"]
+unique_name_in_owner = true
+layout_mode = 2
+
+[node name="Label" type="Label" parent="TerrainFeatureSpecs/SizeMinValues"]
+custom_minimum_size = Vector2(120, 0)
+layout_mode = 2
+text = "Size Min"
+
+[node name="Label2" type="Label" parent="TerrainFeatureSpecs/SizeMinValues"]
+custom_minimum_size = Vector2(120, 0)
+layout_mode = 2
+
+[node name="SizeMaxValues" type="HBoxContainer" parent="TerrainFeatureSpecs"]
+unique_name_in_owner = true
+layout_mode = 2
+
+[node name="Label" type="Label" parent="TerrainFeatureSpecs/SizeMaxValues"]
+custom_minimum_size = Vector2(120, 0)
+layout_mode = 2
+text = "Size Max"
+
+[node name="Label2" type="Label" parent="TerrainFeatureSpecs/SizeMaxValues"]
+custom_minimum_size = Vector2(120, 0)
+layout_mode = 2
+
+[node name="SizeMeanValues" type="HBoxContainer" parent="TerrainFeatureSpecs"]
+unique_name_in_owner = true
+layout_mode = 2
+
+[node name="Label" type="Label" parent="TerrainFeatureSpecs/SizeMeanValues"]
+custom_minimum_size = Vector2(120, 0)
+layout_mode = 2
+text = "Size Mean
+"
+
+[node name="Label2" type="Label" parent="TerrainFeatureSpecs/SizeMeanValues"]
+custom_minimum_size = Vector2(120, 0)
+layout_mode = 2
+
+[node name="SizeMedianValues" type="HBoxContainer" parent="TerrainFeatureSpecs"]
+unique_name_in_owner = true
+layout_mode = 2
+
+[node name="Label" type="Label" parent="TerrainFeatureSpecs/SizeMedianValues"]
+custom_minimum_size = Vector2(120, 0)
+layout_mode = 2
+text = "Size Median"
+
+[node name="Label2" type="Label" parent="TerrainFeatureSpecs/SizeMedianValues"]
+custom_minimum_size = Vector2(120, 0)
+layout_mode = 2
+
+[node name="SizeDeviationValues" type="HBoxContainer" parent="TerrainFeatureSpecs"]
+unique_name_in_owner = true
+layout_mode = 2
+
+[node name="Label" type="Label" parent="TerrainFeatureSpecs/SizeDeviationValues"]
+custom_minimum_size = Vector2(120, 0)
+layout_mode = 2
+text = "Size Deviation"
+
+[node name="Label2" type="Label" parent="TerrainFeatureSpecs/SizeDeviationValues"]
+custom_minimum_size = Vector2(120, 0)
+layout_mode = 2
+
+[node name="HSeparator2" type="HSeparator" parent="TerrainFeatureSpecs"]
+layout_mode = 2
+
+[node name="HeightMinValues" type="HBoxContainer" parent="TerrainFeatureSpecs"]
+unique_name_in_owner = true
+layout_mode = 2
+
+[node name="Label" type="Label" parent="TerrainFeatureSpecs/HeightMinValues"]
+custom_minimum_size = Vector2(120, 0)
+layout_mode = 2
+text = "Height Min"
+
+[node name="Label2" type="Label" parent="TerrainFeatureSpecs/HeightMinValues"]
+custom_minimum_size = Vector2(120, 0)
+layout_mode = 2
+
+[node name="HeightMaxValues" type="HBoxContainer" parent="TerrainFeatureSpecs"]
+unique_name_in_owner = true
+layout_mode = 2
+
+[node name="Label" type="Label" parent="TerrainFeatureSpecs/HeightMaxValues"]
+custom_minimum_size = Vector2(120, 0)
+layout_mode = 2
+text = "Height Max"
+
+[node name="Label2" type="Label" parent="TerrainFeatureSpecs/HeightMaxValues"]
+custom_minimum_size = Vector2(120, 0)
+layout_mode = 2
+
+[node name="HeightMeanValues" type="HBoxContainer" parent="TerrainFeatureSpecs"]
+unique_name_in_owner = true
+layout_mode = 2
+
+[node name="Label" type="Label" parent="TerrainFeatureSpecs/HeightMeanValues"]
+custom_minimum_size = Vector2(120, 0)
+layout_mode = 2
+text = "Height Mean"
+
+[node name="Label2" type="Label" parent="TerrainFeatureSpecs/HeightMeanValues"]
+custom_minimum_size = Vector2(120, 0)
+layout_mode = 2
+
+[node name="HeightMedianValues" type="HBoxContainer" parent="TerrainFeatureSpecs"]
+unique_name_in_owner = true
+layout_mode = 2
+
+[node name="Label" type="Label" parent="TerrainFeatureSpecs/HeightMedianValues"]
+custom_minimum_size = Vector2(120, 0)
+layout_mode = 2
+text = "Height Median"
+
+[node name="Label2" type="Label" parent="TerrainFeatureSpecs/HeightMedianValues"]
+custom_minimum_size = Vector2(120, 0)
+layout_mode = 2
+
+[node name="HeightDeviationValues" type="HBoxContainer" parent="TerrainFeatureSpecs"]
+unique_name_in_owner = true
+layout_mode = 2
+
+[node name="Label" type="Label" parent="TerrainFeatureSpecs/HeightDeviationValues"]
+custom_minimum_size = Vector2(120, 0)
+layout_mode = 2
+text = "Height Deviation"
+
+[node name="Label2" type="Label" parent="TerrainFeatureSpecs/HeightDeviationValues"]
+custom_minimum_size = Vector2(120, 0)
+layout_mode = 2

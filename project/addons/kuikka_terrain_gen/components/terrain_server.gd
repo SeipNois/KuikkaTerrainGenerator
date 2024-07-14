@@ -15,7 +15,7 @@ class_name TerrainServerGD extends Node
 signal generation_step_completed
 signal agent_generation_finished
 signal genetic_operations_finished
-signal generation_finished(heightmap, areas)
+signal generation_finished(heightmap, areas, terr_img)
 
 
 var _instance: TerrainServerGD
@@ -89,7 +89,7 @@ func generate_terrain(parameters: KuikkaTerrainGenParams) -> Array:
 	print_debug("Finished terrain generation ", _end_ticks, "\nTook: ",
 	str(_end_ticks-_start_ticks))
 	
-	generation_finished.emit(heightmap, agent_areas)
+	generation_finished.emit(heightmap, agent_areas, terrain_image)
 	return [result, agent_areas]
 
 
@@ -103,14 +103,22 @@ func generate_terrain_from_reference(heightmaps: Array, gml: Array, parameters: 
 						parameters.height,
 						false,
 						parameters.image_format)
-	heightmap.fill(parameters.start_level)
 	
 	terrain_image = terrain_parser.parse_data(heightmaps, gml, parameters)
 	terrain_image.generation_seed = parameters.seed
-	rng.set_seed(parameters.seed)
-	rng.set_state(parameters.seed)
+	terrain_image.evolution.gene_point_size = parameters.point_size
+	terrain_image.evolution.generations = parameters.generations
+	terrain_image.evolution.population_size = parameters.population
+
+	var rang = terrain_image.height_profile.height_range
+	var level = terrain_image.height_profile.mean + parameters.start_level
+	level = clampf(level, 0.0, 1.0)
 	
-	print_debug(terrain_image.features["jarvi"].get_properties())
+	var color = Color(level, level, level, 1)
+	heightmap.fill(color)
+	
+	rng.set_seed(parameters.seed)
+	# rng.set_state(parameters.seed)
 	
 	# Run agent generation process.
 	print_debug("Setting up agents.")
@@ -125,6 +133,7 @@ func generate_terrain_from_reference(heightmaps: Array, gml: Array, parameters: 
 	# heightmap.fill(parameters.start_level)
 	# print_debug("agent areas ", agent_areas)
 	
+	## FIXME: Uncomment to activate evolution.
 	print_debug("Sample heightmap images.")
 	terrain_image.database = HeightSampleDB.new()
 	terrain_image.database.unsorted_samples = await KuikkaUtils.sample_images_array(heightmaps, 300, 
@@ -137,12 +146,13 @@ func generate_terrain_from_reference(heightmaps: Array, gml: Array, parameters: 
 	_run_evolution_process_image(terrain_image)
 	
 	await evolution_handler.heightmap_completed
+	## * * * * * * * * *
 	
 	var _end_ticks = Time.get_ticks_msec()
 	print_debug("Finished generation ", _end_ticks, "\nTook: ",
 	str(_end_ticks-_start_ticks))
 	
-	generation_finished.emit(heightmap, agent_areas)
+	generation_finished.emit(heightmap, agent_areas, terrain_image)
 	
 
 ## Update heightsamples sorting based on new parameters.
@@ -191,8 +201,8 @@ func _start_agent_generation():
 
 
 func _setup_evolution_process_image(terrain_image, heightmap):
-	evolution_handler.seed = terrain_image.generation_seed
-	evolution_handler.state = rng.randi()
+	evolution_handler.seed = rng.randi()# terrain_image.generation_seed
+	#evolution_handler.state = rng.randi()
 	
 	# Setup image samples and heightmap.
 	evolution_handler.setup_handler_from_image(terrain_image, heightmap)
@@ -208,7 +218,7 @@ func _setup_evolution_process_image(terrain_image, heightmap):
 ## Setup agents using parameters saved as TerrainFeatureImage.
 func _setup_agents_image(terrain_image: TerrainFeatureImage, heightmap: Image):
 	rng.set_seed(terrain_image.generation_seed)
-	rng.set_state(terrain_image.generation_seed)
+	# rng.set_state(terrain_image.generation_seed)
 	
 	# print_debug(parameters.generation_seed, " ", rng.seed)
 	
@@ -217,12 +227,12 @@ func _setup_agents_image(terrain_image: TerrainFeatureImage, heightmap: Image):
 	for c in get_children():
 		remove_child(c)
 		c.queue_free()
-	agents.append_array([KuikkaLakeAgent.new(), KuikkaHillAgent.new()])
+	agents.append_array([KuikkaLakeAgent.new(), KuikkaHillAgent.new(), KuikkaMeadowAgent.new()])
 	
 	for agent in agents:
 		agent.heightmap = heightmap
-		agent.seed = terrain_image.generation_seed
-		agent.state = rng.randi()
+		agent.seed = rng.randi()
+		#agent.state = rng.randi()
 		
 		print_debug(agent.agent_type)
 		agent.terrain_image = terrain_image
@@ -257,7 +267,7 @@ func _run_evolution_process_image(terrain_image: TerrainFeatureImage):
 ## Setup agents for generating heightmap
 func _setup_agents(parameters: KuikkaTerrainGenParams, heightmap: Image):
 	rng.set_seed(parameters.generation_seed)
-	rng.set_state(parameters.generation_seed)
+	# rng.set_state(parameters.generation_seed)
 	
 	# print_debug(parameters.generation_seed, " ", rng.seed)
 	
@@ -270,8 +280,8 @@ func _setup_agents(parameters: KuikkaTerrainGenParams, heightmap: Image):
 	
 	for agent in agents:
 		agent.heightmap = heightmap
-		agent.seed = parameters.generation_seed
-		agent.state = rng.randi()
+		agent.seed = rng.randi()
+		# agent.state = rng.randi()
 		print_debug(agent.agent_type)
 		agent.parameters = parameters.agents[agent.agent_type]
 		# Add as child to enable _ready and _process loop for agent Nodes.
@@ -297,8 +307,8 @@ func _setup_agents(parameters: KuikkaTerrainGenParams, heightmap: Image):
 ## Setup rng settings, fitness references, chromosomes and height samples for
 ## genetic generation process.
 func _setup_evolution_process(parameters: KuikkaTerrainGenParams):
-	evolution_handler.seed = parameters.generation_seed
-	evolution_handler.state = rng.randi()
+	evolution_handler.seed = rng.randi()
+	# evolution_handler.state = rng.randi()
 	
 	# Setup image samples and heightmap.
 	evolution_handler.setup_evolution_handler.call_deferred(parameters, heightmap)

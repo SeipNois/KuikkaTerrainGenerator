@@ -8,14 +8,14 @@ func apply_operation(img : Image) -> Image:
 	var h = img.get_height()
 	var size = w*h
 	
-	var bytes = img.get_data()
+	var copy = img.duplicate()
 	
 	var shift = floor(strength * 0.5 * w)
 	var first_col = []
 	
 	# Get column row for reference
-	for ry in h:
-		first_col.append(img.get_pixel(0, ry))
+	#for ry in h:
+		#first_col.append(img.get_pixel(0, ry))
 	
 	for i in size:
 		var x = i % w
@@ -23,7 +23,7 @@ func apply_operation(img : Image) -> Image:
 		
 		# Blend shifted edge edge.
 		if x < shift:
-			img.set_pixel(x, y, first_col[y]*x/shift)
+			img.set_pixel(x, y, Color(0, 0, 0, 0))#first_col[y]*x/shift)
 		# New values from shift.
 		else:
 			var color = img.get_pixel(x-shift, y)
@@ -31,8 +31,3 @@ func apply_operation(img : Image) -> Image:
 	
 	return img
 
-
-## Applies genetic operation to image at [param path] using
-## imagemagick command line tools.
-func apply_operation_path(path : String) -> void:
-	return

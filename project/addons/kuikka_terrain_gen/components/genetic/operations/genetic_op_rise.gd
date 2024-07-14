@@ -8,8 +8,7 @@ func apply_operation(img : Image) -> Image:
 	var w = img.get_width()
 	var h = img.get_height()
 	var size = w*h
-	
-	var bytes = img.get_data()
+	var copy = img.duplicate()
 	
 	for i in size:
 		var x = i % w
@@ -19,12 +18,7 @@ func apply_operation(img : Image) -> Image:
 		var result = Color(clampf(color.r+0.1*strength, 0.0, 1.0), 
 					clampf(color.g+0.1*strength, 0.0, 1.0),
 					clampf(color.b+0.1*strength, 0.0, 1.0))
-		img.set_pixel(x, y, result)
+		copy.set_pixel(x, y, result)
+	img=copy
 	
 	return img
-
-
-## Applies genetic operation to image at [param path] using
-## imagemagick command line tools.
-func apply_operation_path(path : String) -> void:
-	return

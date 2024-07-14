@@ -32,7 +32,9 @@ func _generation_process():
 	# print_debug(h, " ", parameters["lake"].gen_height_min, 
 	#		" ", parameters["lake"].gen_height_max)
 	
-	if h > parameters["lake"].gen_height_min and \
+	if last_position.x > 0 and last_position.x < heightmap.get_width() and \
+	last_position.y > 0 and last_position.y < heightmap.get_height() and\
+	h > parameters["lake"].gen_height_min and \
 	h < parameters["lake"].gen_height_max:
 		
 		# Flatten base area
@@ -42,11 +44,14 @@ func _generation_process():
 		var flat = Image.create(brush.get_width(), brush.get_height(), false, heightmap.get_format())
 		mask.resize(flat.get_width(), flat.get_height())
 		flat.fill(Color(flat_h, flat_h, flat_h, 1))
-		flat = KuikkaUtils.images_blend_alpha(flat, mask)
-		heightmap.blend_rect_mask(flat, 
-								brush,
-								flat.get_used_rect(), 
-								last_position-offset)
+		flat = KuikkaImgUtil.images_blend_alpha(flat, mask)
+		#heightmap.blend_rect_mask(flat, 
+								#brush,
+								#flat.get_used_rect(), 
+								#last_position-offset)
+		
+		heightmap = KuikkaImgUtil.blend_rect_diff_mask(heightmap, flat, brush, 
+								flat.get_used_rect(), last_position-offset, 1)
 		
 		area_silhouette.agent_travel[-1].add_point(last_position)
 		
@@ -61,19 +66,42 @@ func _generation_process():
 			center.x += round(main_size/2 * rng.randi_range(-0.75, 0.75))
 			center.y += round(main_size/2 * rng.randi_range(-0.75, 0.75))
 			
-			heightmap.blend_rect(brush,
-						brush.get_used_rect(), 
-						center-offset)
+			#heightmap.blend_rect(brush,
+						#brush.get_used_rect(), 
+						#center-offset)
+			heightmap = KuikkaImgUtil.blend_rect_diff(heightmap, brush, 
+								brush.get_used_rect(), last_position-offset, 1)
 			gene_mask.blend_rect(brush,
 						brush.get_used_rect(), 
 						last_position-offset)
-
-	## Randomize new lake location.
-	last_position = Vector2i(rng.randi_range(offset.x, heightmap.get_width()-offset.x),
-							rng.randi_range(offset.y, heightmap.get_height()-offset.y))
+			
+		tokens -= 2
+	# Reduced token consumption if unsuccessful
+	else:
+		tokens -= 1
+	
+	var feat = parameters["lake"]
+	var speed = rng.randi_range_weighted(feat.size_min, feat.size_max, feat.size_mean, feat.size_std_dev)
+	var new_pos: Vector2 = Vector2(last_position) + move_direction * speed
+	last_position = Vector2i(new_pos)
+		
+		# Randomize new position if out of bounds or jump treshold is reached.
+	if last_position.x < 0 or last_position.x >= heightmap.get_width() or \
+	last_position.y < 0 or last_position.y >= heightmap.get_height() \
+	# TODO: Jump treshold
+	or rng.randf_range(0, 1) < 0.3:
+		
+		last_position = Vector2i(rng.randi_range(offset.x, heightmap.get_width()-offset.x),
+								rng.randi_range(offset.y, heightmap.get_height()-offset.y))
+		# Add new curve when starting from new position.
+		area_silhouette.agent_travel.append(Curve2D.new())
+	
+	### Randomize new lake location.
+	#last_position = Vector2i(rng.randi_range(offset.x, heightmap.get_width()-offset.x),
+							#rng.randi_range(offset.y, heightmap.get_height()-offset.y))
+							
 	## Add new curve when starting from new position.
-	area_silhouette.agent_travel.append(Curve2D.new())
-	tokens -= 1
+	# area_silhouette.agent_travel.append(Curve2D.new())
 	generation_step.emit()
 	
 	## FIXME: Old code 
@@ -122,8 +150,9 @@ func start_generation():
 	# Prepare agent starting state.
 	parameters = { "lake": terrain_image.features["jarvi"] }
 	
-	# TODO: Density has to be 
-	tokens = round(parameters["lake"].density / 10)
+	# Double tokens to consume 2 when successful and only one if 
+	# failing to generate.
+	tokens = round(parameters["lake"].density) * 2
 	rng.set_seed(seed)
 	rng.set_state(state)
 	
@@ -152,7 +181,7 @@ func _load_brush():
 	for x in brush.get_width():
 		for y in brush.get_height():
 			# TODO: Blend weight
-			brush.set_pixel(x, y, Color(0, 0, 0, brush.get_pixel(x, y).a * 0.5))
+			brush.set_pixel(x, y, Color(0, 0, 0, brush.get_pixel(x, y).a * blend_multiplier))
 
 
 

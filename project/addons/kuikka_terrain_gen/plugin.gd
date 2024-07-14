@@ -66,9 +66,16 @@ func _get_plugin_icon():
 
 ## Generate settings for terrain generator plugin
 func generate_settings():
-	add_custom_project_setting("kuikka_terrain_gen/gdal_path", "", 4, PROPERTY_HINT_FILE, "Directory path to gdal executables")
-	add_custom_project_setting("kuikka_terrain_gen/image_magick_path", "", 4, PROPERTY_HINT_FILE, "File path to ImageMagick executable executables")
+	var config : ConfigFile = KuikkaConfig.tools_config()
+	add_custom_project_setting("kuikka_terrain_gen/gdal_path", 
+		ProjectSettings.globalize_path(config.get_value("tools", "gdal_path", "")), 
+		4, PROPERTY_HINT_FILE, "Directory path to gdal executables")
+	add_custom_project_setting("kuikka_terrain_gen/image_magick_path", 
+		ProjectSettings.globalize_path(config.get_value("tools", "image_magick_path", "")), 
+		4, PROPERTY_HINT_FILE, "File path to ImageMagick executable executables")
 	
+	print_debug("Gdal path set to ", config.get_value("tools", "gdal_path", ""))
+	print_debug("ImageMagick path set to ", config.get_value("tools", "image_magick_path", ""))
 	
 	var error = ProjectSettings.save()
 	if error: printerr("Error saving project settings: ", error)

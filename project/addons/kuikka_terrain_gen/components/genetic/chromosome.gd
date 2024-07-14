@@ -1,7 +1,7 @@
 class_name Chromosome extends Resource
 
 static var GENETIC_OPERATIONS = [GeneticOperationRise, GeneticOperationLower, 
-								GeneticOperationShiftX, GeneticOperationShiftY]
+								GeneticOperationShiftX, GeneticOperationShiftY]# , GeneticOperationSmooth]
 
 @export var reference_fitness : FitnessParameters
 @export var ref_image : TerrainFeatureImage
@@ -18,16 +18,16 @@ static var GENETIC_OPERATIONS = [GeneticOperationRise, GeneticOperationLower,
 ## required and thus the
 var chromosome_fitness : float = -1
 
-var _rng : RandomNumberGenerator = RandomNumberGenerator.new()
+var _rng : WeightedRNG = WeightedRNG.new()
 
 const TEMP_PATH : String = "res://generated/gene_processed/"
 
 
-func create_genes(points : Dictionary, seed: int, state: int, heightmap: Image):
+func create_genes(area : Dictionary, seed: int, state: int, heightmap: Image, feature: TerrainFeature, handler: EvolutionHandler):
 	_rng.set_seed(seed)
 	_rng.set_state(state)
 	
-	gene_placements = points
+	gene_placements = area
 	var used_indexes = []
 	
 	var index = _rng.randi_range(0, sample_pool.size()-1)
@@ -35,55 +35,72 @@ func create_genes(points : Dictionary, seed: int, state: int, heightmap: Image):
 	# print_debug(gene_placements.gene_points)
 	
 	# Place genes
-	
+	if sample_pool.size() == 0:
+		printerr("Chromosome sample pool size is 0! Can't appoint samples for genes.")
+		return
 	
 	# Place genes
-	for y in range(0, heightmap.get_height(), 80):
-		for x in range(0, heightmap.get_width(), 80):
-			var p = Vector2(x, y)
-			var w = gene_placements.gene_mask.get_pixel(p.x, p.y).a
+	for pf in gene_placements.gene_points:
+		var p = Vector2i(pf.x, pf.y)
+		var w = 0
+		
+		# Ignore if out of bounds
+		if p.x > 0 and p.y > 0 and p.x < gene_placements.gene_mask.get_width() and \
+		p.y < gene_placements.gene_mask.get_height():
+			w = gene_placements.gene_mask.get_pixel(p.x, p.y).a
+			#w += 0.2
+			# print_debug("Gene weight ", gene_placements.gene_mask.get_pixel(p.x, p.y).a)
 			
-			if sample_pool.size() == 0:
-				printerr("Chromosome sample pool size is 0! Can't appoint samples for genes.")
+		if w > 0:
+			var sample = sample_pool[index]
+			var radius = clamp(_rng.randi_normal_dist(feature.size_mean, feature.size_std_dev), 2, 300)
+			var g = Gene.new(p, radius, w, sample, _rng.randi())
+			genes.append(g)
 			
-			if w > 0:
-				var sample = sample_pool[index]
-				var g = Gene.new(p, 64, w, sample, _rng.randi())
-				genes.append(g)
-				
-				index = _rng.randi_range(0, sample_pool.size()-1)
-			else:
-				print_debug("Skipping position ", p, " in gene mask.")
-		
-		
-	#for i in gene_placements.gene_points.size():
-#
-		#var p = gene_placements.gene_points[i]
-		#var w = gene_placements.gene_weights[i]
-		#
-		#if sample_pool.size() == 0:
-			#printerr("Chromosome sample pool size is 0! Can't appoint samples for genes.")
-			#
-		## used_indexes.append(index)
-#
-		#var sample = sample_pool[index]
-		#var g = Gene.new(p, 64, w, sample, _rng.randi())
-		#genes.append(g)
-		#
-		#index = _rng.randi_range(0, sample_pool.size()-1)
-		#
-		
-		
-		## FIXME: Allow use of same sample several times.
-		# Don't use same index twice
-		#while used_indexes.find(index):
+			# Assign alpha mask sample
 			#index = _rng.randi_range(0, sample_pool.size()-1)
-			## print_debug(index)
+			#g.alpha_mask_sample  = sample_pool[index]
+			
+			index = _rng.randi_range(0, sample_pool.size()-1)
+			
+			# List gene to handler queue for removing image file
+			# when ending run.
+			handler.queue_for_purge(g.get_instance_id())
+			
+		else:
+			# print_debug("Skipping position ", p, " in gene mask.")
+			pass
+		
+	#for y in range(0, heightmap.get_height(), 80):
+		#for x in range(0, heightmap.get_width(), 80):
+			#var p = Vector2(x, y)
+			#var w = gene_placements.gene_mask.get_pixel(p.x, p.y).a
+			#
+			#if sample_pool.size() == 0:
+				#printerr("Chromosome sample pool size is 0! Can't appoint samples for genes.")
+			#
+			#if w > 0:
+				#var sample = sample_pool[index]
+				#var g = Gene.new(p, 64, w, sample, _rng.randi())
+				#genes.append(g)
+				#
+				## Assign alpha mask sample
+				#index = _rng.randi_range(0, sample_pool.size()-1)
+				#g.alpha_mask_sample  = sample_pool[index]
+				#
+				#index = _rng.randi_range(0, sample_pool.size()-1)
+				#
+				## List gene to handler queue for removing image file
+				## when ending run.
+				#handler.queue_for_purge(g.get_instance_id())
+				#
+			#else:
+				#print_debug("Skipping position ", p, " in gene mask.")
 		
 
 ## Calculate fitness values for single [Gene][param gene]
 func calculate_gene_fitness(gene: Gene) -> float:
-	var hmap = gene.apply_genetic_operations()
+	var hmap = await gene.apply_genetic_operations()
 	return Fitness.calculate_img_fitness(hmap, reference_fitness)
 
 
@@ -94,7 +111,7 @@ func evaluate_fitness() -> float:
 	
 	# Calculate fitness of each gene.
 	for g in genes:
-		fitnesses.append(calculate_gene_fitness(g))
+		fitnesses.append(await calculate_gene_fitness(g))
 
 	# Get average fitness for chromosome.
 	chromosome_fitness = KuikkaUtils.mean(fitnesses)
@@ -129,7 +146,7 @@ func evaluate_height_profile() -> float:
 
 
 func calculate_gene_height_profile(gene: Gene) -> float:
-	var hmap = gene.apply_genetic_operations()
+	var hmap = await gene.apply_genetic_operations()
 	var stats = await TerrainParser._parse_heightmap(TEMP_PATH+str(gene.get_instance_id())+".png")
 	
 	if not stats or not stats.is_valid():

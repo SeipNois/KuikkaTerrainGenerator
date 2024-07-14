@@ -7,7 +7,8 @@ class_name GdalUtils extends Node
 const GDAL_TRANSLATE = "/gdal_translate.exe"
 const GDAL_INFO = "/gdalinfo.exe"
 
-enum ImgFormat {PNG, EXR}
+enum ImgFormat {PNG, EXR, EHdr}
+enum ColorFormat {Byte, Int8, Int16, UInt16, Int32, UInt32}
 
 @export var gdal_path : StringName =  ProjectSettings.globalize_path(
 	ProjectSettings.get_setting("kuikka_terrain_gen/gdal_path") if ProjectSettings.get_setting("kuikka_terrain_gen/gdal_path") else ""):
@@ -38,7 +39,7 @@ func set_gdal_path(path: StringName):
 
 
 ## Convert all valid images in given directory to given format using gdal_translate.
-func gdal_translate_directory(directory : String, destination: String, format: ImgFormat):
+func gdal_translate_directory(directory : String, destination: String, format: ImgFormat, bit_depth: int):
 	if not try_load_gdal_executable():
 		printerr("Gdal executables could not be located! Please check gdal_path set in ProjectSettings.")
 		return
@@ -48,7 +49,7 @@ func gdal_translate_directory(directory : String, destination: String, format: I
 	var files = DirAccess.get_files_at(directory)
 	
 	for f in files:
-		await gdal_translate_one(FilePath.join([directory, f]), destination, format)
+		await gdal_translate_one(FilePath.join([directory, f]), destination, format, bit_depth)
 		await get_tree().create_timer(0.002).timeout
 
 
@@ -56,13 +57,13 @@ func gdal_translate_directory(directory : String, destination: String, format: I
 ## [param filepaths] Array of file paths of files to convert to another format.
 ## [param destination] Filepath of the destination directory for converted files.
 ## [param format] Image format to convert to.
-func gdal_translate_batch(filepaths : Array, destination: String, format: ImgFormat):
+func gdal_translate_batch(filepaths : Array, destination: String, format: ImgFormat,bit_depth: int, debug:bool=false):
 	if not try_load_gdal_executable():
 		printerr("Gdal executables could not be located! Please check gdal_path set in ProjectSettings.")
 		return
 		
 	for f in filepaths:
-		await gdal_translate_one(f, destination, format)
+		await gdal_translate_one(f, destination, format, bit_depth, false, debug)
 
 
 ## Convert all files in given path between formats
@@ -71,7 +72,7 @@ func gdal_translate_batch(filepaths : Array, destination: String, format: ImgFor
 ## [param format] Image format to convert to.
 ## [param keep_world_data] Save georeferencing data to separate pgw file.
 ## @tutorial https://gdal.org/programs/gdal_translate.html
-func gdal_translate_one(filepath : String, destination: String, format: ImgFormat, keep_world_data: bool=false):
+func gdal_translate_one(filepath : String, destination: String, format: ImgFormat, bit_depth: int, keep_world_data: bool=false, debug:bool=false):
 	# Convert to absolute paths if in Godot local res:// or user:// format.
 	filepath = ProjectSettings.globalize_path(filepath)
 	destination = ProjectSettings.globalize_path(destination)
@@ -84,7 +85,9 @@ func gdal_translate_one(filepath : String, destination: String, format: ImgForma
 	var ext = form_str.to_lower()
 	var dest_file = FilePath.join([destination, f_name+"."+ext])
 	
-	var args = ["-of", form_str]
+	var bits = ColorFormat.keys()[bit_depth]
+	
+	var args = ["-of", form_str, "-ot", bits]
 	
 	#if format == ImgFormat.PNG or format == 0:
 		#args.append_array(["-ot", "UInt16", "-scale", "32.53501", "767.4913", "0", "65535"])
@@ -95,7 +98,7 @@ func gdal_translate_one(filepath : String, destination: String, format: ImgForma
 	
 	print_debug("Attempting to convert %s => %s" % [filepath, dest_file])
 	print_debug("Args: ", args)
-	var exitc = OS.execute(gdal_path+GDAL_TRANSLATE, args, result, OS.is_debug_build(), OS.is_debug_build())
+	var exitc = OS.execute(gdal_path+GDAL_TRANSLATE, args, result, true, debug)
 	if exitc == -1:
 		printerr("Gdal translation failed.")
 	else:
@@ -105,7 +108,7 @@ func gdal_translate_one(filepath : String, destination: String, format: ImgForma
 
 
 ## Fetch image statistics using gdalinfo
-func fetch_img_stats(path: String) -> Dictionary:
+func fetch_img_stats(path: String, debug=false) -> Dictionary:
 	if not try_load_gdal_executable():
 		printerr("Gdal executables could not be located! Please check gdal_path set in ProjectSettings.")
 		return {}
@@ -114,7 +117,7 @@ func fetch_img_stats(path: String) -> Dictionary:
 	var filepath = ProjectSettings.globalize_path(path)
 	var args = ["-mm", filepath]
 	
-	var exitc = OS.execute(gdal_path+GDAL_INFO, args, result, OS.is_debug_build(), OS.is_debug_build())
+	var exitc = OS.execute(gdal_path+GDAL_INFO, args, result, true, debug)
 	
 	if exitc == -1:
 		printerr("Failed to fetch image statistics with gdalinfo.")

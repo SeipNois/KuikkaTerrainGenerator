@@ -11,14 +11,21 @@ func draw_area(new_area: Array, new_color: Color):
 
 
 func _draw():
-	for curve : Curve2D in area:
-		var start = curve.get_point_position(0)
-		draw_circle(start, 2, color)
+	# Draw curve
+	for curve in area:
+		if curve is Curve2D:
+			var start = curve.get_point_position(0)
+			# draw_circle(start, 3, color)
+			
+			if curve.point_count > 1:
+				for i in range(1, curve.point_count-1):
+					draw_circle(start, 3, color)
+					draw_line(start, curve.get_point_position(i), color, 1)
+					
+					start = curve.get_point_position(i)
+			draw_circle(start, 3, color)
 		
-		if curve.point_count > 1:
-			for i in range(1, curve.point_count-1):
-				draw_circle(start, 2, color)
-				draw_line(start, 
-					curve.get_point_position(i), color, 5)
-				
-				start = curve.get_point_position(i)
+		
+		# Draw single points 
+		elif curve is Vector2i:
+			draw_circle(curve, 3, color)

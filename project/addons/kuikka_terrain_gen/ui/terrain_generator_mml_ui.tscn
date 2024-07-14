@@ -1,7 +1,11 @@
-[gd_scene load_steps=4 format=3 uid="uid://bbvyjtr37rsg8"]
+[gd_scene load_steps=8 format=3 uid="uid://bbvyjtr37rsg8"]
 
 [ext_resource type="Script" path="res://addons/kuikka_terrain_gen/ui/terrain_generator_mml_ui.gd" id="1_8jyb3"]
+[ext_resource type="Script" path="res://addons/kuikka_terrain_gen/ui/ZoomableContainer.gd" id="2_hboem"]
 [ext_resource type="Script" path="res://addons/kuikka_terrain_gen/ui/areas_ui_handler.gd" id="2_odsjw"]
+[ext_resource type="Script" path="res://addons/kuikka_terrain_gen/ui/terrain_features.gd" id="4_ilf7b"]
+[ext_resource type="Script" path="res://addons/kuikka_terrain_gen/ui/dictionary_display.gd" id="5_6x8s5"]
+[ext_resource type="Script" path="res://addons/kuikka_terrain_gen/ui/result_comparison_ui.gd" id="6_ddguo"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_3khto"]
 bg_color = Color(0.270588, 0.309804, 0.372549, 1)
@@ -18,7 +22,7 @@ grow_horizontal = 2
 grow_vertical = 2
 script = ExtResource("1_8jyb3")
 
-[node name="CenterContainer" type="CenterContainer" parent="."]
+[node name="AspectRatioContainer" type="AspectRatioContainer" parent="."]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
@@ -26,36 +30,39 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 
-[node name="HSplitContainer" type="HSplitContainer" parent="CenterContainer"]
+[node name="CenterContainer" type="CenterContainer" parent="AspectRatioContainer"]
 layout_mode = 2
 
-[node name="LeftSide" type="MarginContainer" parent="CenterContainer/HSplitContainer"]
+[node name="HSplitContainer" type="HSplitContainer" parent="AspectRatioContainer/CenterContainer"]
 layout_mode = 2
 
-[node name="VBoxContainer" type="VBoxContainer" parent="CenterContainer/HSplitContainer/LeftSide"]
+[node name="LeftSide" type="MarginContainer" parent="AspectRatioContainer/CenterContainer/HSplitContainer"]
+layout_mode = 2
+
+[node name="VBoxContainer" type="VBoxContainer" parent="AspectRatioContainer/CenterContainer/HSplitContainer/LeftSide"]
 custom_minimum_size = Vector2(220, 0)
 layout_mode = 2
 
-[node name="HBoxContainer2" type="HBoxContainer" parent="CenterContainer/HSplitContainer/LeftSide/VBoxContainer"]
+[node name="HBoxContainer2" type="HBoxContainer" parent="AspectRatioContainer/CenterContainer/HSplitContainer/LeftSide/VBoxContainer"]
 layout_mode = 2
 
-[node name="Label" type="Label" parent="CenterContainer/HSplitContainer/LeftSide/VBoxContainer/HBoxContainer2"]
+[node name="Label" type="Label" parent="AspectRatioContainer/CenterContainer/HSplitContainer/LeftSide/VBoxContainer/HBoxContainer2"]
 custom_minimum_size = Vector2(150, 0)
 layout_mode = 2
 text = "Show overlay"
 
-[node name="CheckButton" type="CheckButton" parent="CenterContainer/HSplitContainer/LeftSide/VBoxContainer/HBoxContainer2"]
+[node name="CheckButton" type="CheckButton" parent="AspectRatioContainer/CenterContainer/HSplitContainer/LeftSide/VBoxContainer/HBoxContainer2"]
 layout_mode = 2
 
-[node name="Label" type="Label" parent="CenterContainer/HSplitContainer/LeftSide/VBoxContainer"]
+[node name="Label" type="Label" parent="AspectRatioContainer/CenterContainer/HSplitContainer/LeftSide/VBoxContainer"]
 layout_mode = 2
 text = "Height Data Files"
 
-[node name="HeightmapList" type="LineEdit" parent="CenterContainer/HSplitContainer/LeftSide/VBoxContainer"]
+[node name="HeightmapList" type="LineEdit" parent="AspectRatioContainer/CenterContainer/HSplitContainer/LeftSide/VBoxContainer"]
 unique_name_in_owner = true
 layout_mode = 2
 
-[node name="HmapFileDialog" type="FileDialog" parent="CenterContainer/HSplitContainer/LeftSide/VBoxContainer/HeightmapList"]
+[node name="HmapFileDialog" type="FileDialog" parent="AspectRatioContainer/CenterContainer/HSplitContainer/LeftSide/VBoxContainer/HeightmapList"]
 unique_name_in_owner = true
 title = "Open File(s)"
 size = Vector2i(299, 159)
@@ -64,22 +71,22 @@ file_mode = 1
 access = 2
 use_native_dialog = true
 
-[node name="SelectHeightDataFiles" type="Button" parent="CenterContainer/HSplitContainer/LeftSide/VBoxContainer"]
+[node name="SelectHeightDataFiles" type="Button" parent="AspectRatioContainer/CenterContainer/HSplitContainer/LeftSide/VBoxContainer"]
 layout_mode = 2
 text = "Open Files"
 
-[node name="HSeparator" type="HSeparator" parent="CenterContainer/HSplitContainer/LeftSide/VBoxContainer"]
+[node name="HSeparator" type="HSeparator" parent="AspectRatioContainer/CenterContainer/HSplitContainer/LeftSide/VBoxContainer"]
 layout_mode = 2
 
-[node name="Label2" type="Label" parent="CenterContainer/HSplitContainer/LeftSide/VBoxContainer"]
+[node name="Label2" type="Label" parent="AspectRatioContainer/CenterContainer/HSplitContainer/LeftSide/VBoxContainer"]
 layout_mode = 2
 text = "Terrain Feature Files"
 
-[node name="TerrainDataList" type="LineEdit" parent="CenterContainer/HSplitContainer/LeftSide/VBoxContainer"]
+[node name="TerrainDataList" type="LineEdit" parent="AspectRatioContainer/CenterContainer/HSplitContainer/LeftSide/VBoxContainer"]
 unique_name_in_owner = true
 layout_mode = 2
 
-[node name="TerrainFileDialog" type="FileDialog" parent="CenterContainer/HSplitContainer/LeftSide/VBoxContainer/TerrainDataList"]
+[node name="TerrainFileDialog" type="FileDialog" parent="AspectRatioContainer/CenterContainer/HSplitContainer/LeftSide/VBoxContainer/TerrainDataList"]
 unique_name_in_owner = true
 title = "Open File(s)"
 size = Vector2i(299, 159)
@@ -88,84 +95,153 @@ file_mode = 1
 access = 2
 use_native_dialog = true
 
-[node name="SelectTerrainDataFiles" type="Button" parent="CenterContainer/HSplitContainer/LeftSide/VBoxContainer"]
+[node name="SelectTerrainDataFiles" type="Button" parent="AspectRatioContainer/CenterContainer/HSplitContainer/LeftSide/VBoxContainer"]
 layout_mode = 2
 text = "Open Files"
 
-[node name="Label3" type="Label" parent="CenterContainer/HSplitContainer/LeftSide/VBoxContainer"]
+[node name="Label3" type="Label" parent="AspectRatioContainer/CenterContainer/HSplitContainer/LeftSide/VBoxContainer"]
 layout_mode = 2
 text = "Generation seed"
 
-[node name="LineEdit" type="LineEdit" parent="CenterContainer/HSplitContainer/LeftSide/VBoxContainer"]
+[node name="LineEdit" type="LineEdit" parent="AspectRatioContainer/CenterContainer/HSplitContainer/LeftSide/VBoxContainer"]
 layout_mode = 2
 text = "0"
 
-[node name="Label4" type="Label" parent="CenterContainer/HSplitContainer/LeftSide/VBoxContainer"]
+[node name="Label4" type="Label" parent="AspectRatioContainer/CenterContainer/HSplitContainer/LeftSide/VBoxContainer"]
 layout_mode = 2
 text = "Map size"
 
-[node name="HBoxContainer" type="HBoxContainer" parent="CenterContainer/HSplitContainer/LeftSide/VBoxContainer"]
+[node name="HBoxContainer" type="HBoxContainer" parent="AspectRatioContainer/CenterContainer/HSplitContainer/LeftSide/VBoxContainer"]
 layout_mode = 2
 
-[node name="Label" type="Label" parent="CenterContainer/HSplitContainer/LeftSide/VBoxContainer/HBoxContainer"]
+[node name="Label" type="Label" parent="AspectRatioContainer/CenterContainer/HSplitContainer/LeftSide/VBoxContainer/HBoxContainer"]
 layout_mode = 2
 text = "W"
 
-[node name="SpinBoxMapWidth" type="SpinBox" parent="CenterContainer/HSplitContainer/LeftSide/VBoxContainer/HBoxContainer"]
+[node name="SpinBoxMapWidth" type="SpinBox" parent="AspectRatioContainer/CenterContainer/HSplitContainer/LeftSide/VBoxContainer/HBoxContainer"]
 layout_mode = 2
 max_value = 2048.0
 value = 512.0
 allow_greater = true
 
-[node name="Label2" type="Label" parent="CenterContainer/HSplitContainer/LeftSide/VBoxContainer/HBoxContainer"]
+[node name="Label2" type="Label" parent="AspectRatioContainer/CenterContainer/HSplitContainer/LeftSide/VBoxContainer/HBoxContainer"]
 layout_mode = 2
 text = "H"
 
-[node name="SpinBoxMapHeight" type="SpinBox" parent="CenterContainer/HSplitContainer/LeftSide/VBoxContainer/HBoxContainer"]
+[node name="SpinBoxMapHeight" type="SpinBox" parent="AspectRatioContainer/CenterContainer/HSplitContainer/LeftSide/VBoxContainer/HBoxContainer"]
 layout_mode = 2
 max_value = 2048.0
 value = 512.0
 allow_greater = true
 
-[node name="Label5" type="Label" parent="CenterContainer/HSplitContainer/LeftSide/VBoxContainer"]
+[node name="Label5" type="Label" parent="AspectRatioContainer/CenterContainer/HSplitContainer/LeftSide/VBoxContainer"]
 layout_mode = 2
-text = "Terrain Level"
+text = "Terrain Level Offset"
 
-[node name="SpinBox" type="SpinBox" parent="CenterContainer/HSplitContainer/LeftSide/VBoxContainer"]
+[node name="SpinBox" type="SpinBox" parent="AspectRatioContainer/CenterContainer/HSplitContainer/LeftSide/VBoxContainer"]
 layout_mode = 2
-min_value = 0.5
+min_value = -1.0
 max_value = 1.0
 step = 0.001
-value = 0.5
 
-[node name="RightSide" type="CenterContainer" parent="CenterContainer/HSplitContainer"]
+[node name="HBoxContainer3" type="HBoxContainer" parent="AspectRatioContainer/CenterContainer/HSplitContainer/LeftSide/VBoxContainer"]
 layout_mode = 2
 
-[node name="HeightmapOutput" type="VBoxContainer" parent="CenterContainer/HSplitContainer/RightSide"]
+[node name="Label6" type="Label" parent="AspectRatioContainer/CenterContainer/HSplitContainer/LeftSide/VBoxContainer/HBoxContainer3"]
+layout_mode = 2
+text = "Point size
+"
+
+[node name="Label7" type="Label" parent="AspectRatioContainer/CenterContainer/HSplitContainer/LeftSide/VBoxContainer/HBoxContainer3"]
+layout_mode = 2
+text = "Population"
+
+[node name="Label8" type="Label" parent="AspectRatioContainer/CenterContainer/HSplitContainer/LeftSide/VBoxContainer/HBoxContainer3"]
+layout_mode = 2
+text = "Generations
+"
+
+[node name="HBoxContainer4" type="HBoxContainer" parent="AspectRatioContainer/CenterContainer/HSplitContainer/LeftSide/VBoxContainer"]
 layout_mode = 2
 
-[node name="MarginContainer" type="MarginContainer" parent="CenterContainer/HSplitContainer/RightSide/HeightmapOutput"]
+[node name="SpinBoxGeneSize" type="SpinBox" parent="AspectRatioContainer/CenterContainer/HSplitContainer/LeftSide/VBoxContainer/HBoxContainer4"]
+layout_mode = 2
+value = 60.0
+
+[node name="SpinBoxPopulation" type="SpinBox" parent="AspectRatioContainer/CenterContainer/HSplitContainer/LeftSide/VBoxContainer/HBoxContainer4"]
+layout_mode = 2
+max_value = 10.0
+value = 6.0
+
+[node name="SpinBoxGenerations" type="SpinBox" parent="AspectRatioContainer/CenterContainer/HSplitContainer/LeftSide/VBoxContainer/HBoxContainer4"]
+layout_mode = 2
+max_value = 15.0
+value = 3.0
+
+[node name="Button" type="Button" parent="AspectRatioContainer/CenterContainer/HSplitContainer/LeftSide/VBoxContainer"]
+layout_mode = 2
+text = "Refresh 3D Terrain"
+
+[node name="HSeparator2" type="HSeparator" parent="AspectRatioContainer/CenterContainer/HSplitContainer/LeftSide/VBoxContainer"]
+layout_mode = 2
+
+[node name="Button2" type="Button" parent="AspectRatioContainer/CenterContainer/HSplitContainer/LeftSide/VBoxContainer"]
+layout_mode = 2
+text = "Refresh view"
+
+[node name="RightSide" type="CenterContainer" parent="AspectRatioContainer/CenterContainer/HSplitContainer"]
+layout_mode = 2
+
+[node name="TabContainer" type="TabContainer" parent="AspectRatioContainer/CenterContainer/HSplitContainer/RightSide"]
+custom_minimum_size = Vector2(800, 600)
+layout_mode = 2
+
+[node name="Map View" type="HBoxContainer" parent="AspectRatioContainer/CenterContainer/HSplitContainer/RightSide/TabContainer"]
+layout_mode = 2
+
+[node name="HeightmapOutput" type="VBoxContainer" parent="AspectRatioContainer/CenterContainer/HSplitContainer/RightSide/TabContainer/Map View"]
+layout_mode = 2
+
+[node name="MarginContainer" type="MarginContainer" parent="AspectRatioContainer/CenterContainer/HSplitContainer/RightSide/TabContainer/Map View/HeightmapOutput"]
+clip_contents = true
 layout_mode = 2
 size_flags_vertical = 3
-theme_override_constants/margin_left = 0
+theme_override_constants/margin_left = 5
 theme_override_constants/margin_top = 10
-theme_override_constants/margin_right = 0
+theme_override_constants/margin_right = 5
 theme_override_constants/margin_bottom = 10
 
-[node name="AspectRatioContainer" type="AspectRatioContainer" parent="CenterContainer/HSplitContainer/RightSide/HeightmapOutput/MarginContainer"]
+[node name="Panel" type="Panel" parent="AspectRatioContainer/CenterContainer/HSplitContainer/RightSide/TabContainer/Map View/HeightmapOutput/MarginContainer"]
+self_modulate = Color(0.192157, 0.192157, 0.192157, 1)
 layout_mode = 2
 
-[node name="Panel" type="Panel" parent="CenterContainer/HSplitContainer/RightSide/HeightmapOutput/MarginContainer/AspectRatioContainer"]
+[node name="MapContainer" type="CenterContainer" parent="AspectRatioContainer/CenterContainer/HSplitContainer/RightSide/TabContainer/Map View/HeightmapOutput/MarginContainer" node_paths=PackedStringArray("texture_rect", "tooltip")]
+unique_name_in_owner = true
+clip_contents = true
+custom_minimum_size = Vector2(512, 512)
+layout_mode = 2
+mouse_default_cursor_shape = 3
+script = ExtResource("2_hboem")
+texture_rect = NodePath("AspectRatioContainer/HmapTextureRect")
+tooltip = NodePath("Node/MouseToolTip")
+
+[node name="AspectRatioContainer" type="AspectRatioContainer" parent="AspectRatioContainer/CenterContainer/HSplitContainer/RightSide/TabContainer/Map View/HeightmapOutput/MarginContainer/MapContainer"]
+layout_mode = 2
+mouse_filter = 2
+
+[node name="Panel" type="Panel" parent="AspectRatioContainer/CenterContainer/HSplitContainer/RightSide/TabContainer/Map View/HeightmapOutput/MarginContainer/MapContainer/AspectRatioContainer"]
 self_modulate = Color(0.247059, 0.309804, 0.52549, 0.431373)
 layout_mode = 2
+mouse_filter = 2
 theme_override_styles/panel = SubResource("StyleBoxFlat_3khto")
 
-[node name="HmapTextureRect" type="TextureRect" parent="CenterContainer/HSplitContainer/RightSide/HeightmapOutput/MarginContainer/AspectRatioContainer"]
+[node name="HmapTextureRect" type="TextureRect" parent="AspectRatioContainer/CenterContainer/HSplitContainer/RightSide/TabContainer/Map View/HeightmapOutput/MarginContainer/MapContainer/AspectRatioContainer"]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(512, 512)
 layout_mode = 2
+mouse_filter = 2
 
-[node name="AreasOverlay" type="Control" parent="CenterContainer/HSplitContainer/RightSide/HeightmapOutput/MarginContainer/AspectRatioContainer/HmapTextureRect"]
+[node name="AreasOverlay" type="Control" parent="AspectRatioContainer/CenterContainer/HSplitContainer/RightSide/TabContainer/Map View/HeightmapOutput/MarginContainer/MapContainer/AspectRatioContainer/HmapTextureRect" node_paths=PackedStringArray("labels")]
 unique_name_in_owner = true
 visible = false
 custom_minimum_size = Vector2(512, 512)
@@ -173,39 +249,56 @@ layout_mode = 2
 anchors_preset = 0
 offset_right = 512.0
 offset_bottom = 512.0
+mouse_filter = 2
 script = ExtResource("2_odsjw")
+labels = NodePath("../../../../../../LabelsToggles")
 
-[node name="Textures" type="Control" parent="CenterContainer/HSplitContainer/RightSide/HeightmapOutput/MarginContainer/AspectRatioContainer/HmapTextureRect/AreasOverlay"]
+[node name="Textures" type="Control" parent="AspectRatioContainer/CenterContainer/HSplitContainer/RightSide/TabContainer/Map View/HeightmapOutput/MarginContainer/MapContainer/AspectRatioContainer/HmapTextureRect/AreasOverlay"]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
+mouse_filter = 2
 
-[node name="VBoxContainer" type="VBoxContainer" parent="CenterContainer/HSplitContainer/RightSide/HeightmapOutput/MarginContainer/AspectRatioContainer/HmapTextureRect/AreasOverlay"]
+[node name="VBoxContainer" type="VBoxContainer" parent="AspectRatioContainer/CenterContainer/HSplitContainer/RightSide/TabContainer/Map View/HeightmapOutput/MarginContainer/MapContainer/AspectRatioContainer/HmapTextureRect/AreasOverlay"]
 custom_minimum_size = Vector2(30, 30)
 layout_mode = 2
 offset_right = 30.0
 offset_bottom = 30.0
+mouse_filter = 2
 
-[node name="AspectRatioContainer" type="AspectRatioContainer" parent="CenterContainer/HSplitContainer/RightSide/HeightmapOutput"]
+[node name="Node" type="Node" parent="AspectRatioContainer/CenterContainer/HSplitContainer/RightSide/TabContainer/Map View/HeightmapOutput/MarginContainer/MapContainer"]
+
+[node name="MouseToolTip" type="Label" parent="AspectRatioContainer/CenterContainer/HSplitContainer/RightSide/TabContainer/Map View/HeightmapOutput/MarginContainer/MapContainer/Node"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(120, 20)
+offset_top = 8.0
+offset_right = 1.0
+offset_bottom = 31.0
+theme_override_colors/font_shadow_color = Color(0, 0, 0, 1)
+theme_override_colors/font_outline_color = Color(0.192157, 0.192157, 0.192157, 1)
+text = "MOUSETOOLTIP"
+
+[node name="MapID" type="Label" parent="AspectRatioContainer/CenterContainer/HSplitContainer/RightSide/TabContainer/Map View/HeightmapOutput"]
+unique_name_in_owner = true
 layout_mode = 2
-size_flags_vertical = 3
+text = "Generation ID: "
 
-[node name="HBoxContainer" type="HBoxContainer" parent="CenterContainer/HSplitContainer/RightSide/HeightmapOutput/AspectRatioContainer"]
+[node name="HBoxContainer2" type="HBoxContainer" parent="AspectRatioContainer/CenterContainer/HSplitContainer/RightSide/TabContainer/Map View/HeightmapOutput"]
 layout_mode = 2
 
-[node name="GenerateButton" type="Button" parent="CenterContainer/HSplitContainer/RightSide/HeightmapOutput/AspectRatioContainer/HBoxContainer"]
+[node name="GenerateButton" type="Button" parent="AspectRatioContainer/CenterContainer/HSplitContainer/RightSide/TabContainer/Map View/HeightmapOutput/HBoxContainer2"]
 layout_mode = 2
 text = "Generate Heightmap
 "
 
-[node name="ExportButton" type="Button" parent="CenterContainer/HSplitContainer/RightSide/HeightmapOutput/AspectRatioContainer/HBoxContainer"]
+[node name="ExportButton" type="Button" parent="AspectRatioContainer/CenterContainer/HSplitContainer/RightSide/TabContainer/Map View/HeightmapOutput/HBoxContainer2"]
 layout_mode = 2
 text = "Export as image"
 
-[node name="OptionButton" type="OptionButton" parent="CenterContainer/HSplitContainer/RightSide/HeightmapOutput/AspectRatioContainer/HBoxContainer"]
+[node name="OptionButton" type="OptionButton" parent="AspectRatioContainer/CenterContainer/HSplitContainer/RightSide/TabContainer/Map View/HeightmapOutput/HBoxContainer2"]
 layout_mode = 2
 item_count = 2
 popup/item_0/text = "PNG Image"
@@ -213,14 +306,190 @@ popup/item_0/id = 0
 popup/item_1/text = "JPG Image"
 popup/item_1/id = 1
 
-[connection signal="toggled" from="CenterContainer/HSplitContainer/LeftSide/VBoxContainer/HBoxContainer2/CheckButton" to="." method="_on_check_button_toggled"]
-[connection signal="files_selected" from="CenterContainer/HSplitContainer/LeftSide/VBoxContainer/HeightmapList/HmapFileDialog" to="." method="_on_hmap_file_dialog_files_selected"]
-[connection signal="pressed" from="CenterContainer/HSplitContainer/LeftSide/VBoxContainer/SelectHeightDataFiles" to="." method="_on_select_height_data_files_pressed"]
-[connection signal="files_selected" from="CenterContainer/HSplitContainer/LeftSide/VBoxContainer/TerrainDataList/TerrainFileDialog" to="." method="_on_terrain_file_dialog_files_selected"]
-[connection signal="pressed" from="CenterContainer/HSplitContainer/LeftSide/VBoxContainer/SelectTerrainDataFiles" to="." method="_on_select_terrain_data_files_pressed"]
-[connection signal="text_changed" from="CenterContainer/HSplitContainer/LeftSide/VBoxContainer/LineEdit" to="." method="_on_line_edit_text_changed"]
-[connection signal="value_changed" from="CenterContainer/HSplitContainer/LeftSide/VBoxContainer/HBoxContainer/SpinBoxMapWidth" to="." method="_on_spin_box_map_width_value_changed"]
-[connection signal="value_changed" from="CenterContainer/HSplitContainer/LeftSide/VBoxContainer/HBoxContainer/SpinBoxMapHeight" to="." method="_on_spin_box_map_height_value_changed"]
-[connection signal="value_changed" from="CenterContainer/HSplitContainer/LeftSide/VBoxContainer/SpinBox" to="." method="_on_spin_box_value_changed"]
-[connection signal="pressed" from="CenterContainer/HSplitContainer/RightSide/HeightmapOutput/AspectRatioContainer/HBoxContainer/GenerateButton" to="." method="_on_generate_button_pressed"]
-[connection signal="pressed" from="CenterContainer/HSplitContainer/RightSide/HeightmapOutput/AspectRatioContainer/HBoxContainer/ExportButton" to="." method="_on_export_button_pressed"]
+[node name="AspectRatioContainer" type="AspectRatioContainer" parent="AspectRatioContainer/CenterContainer/HSplitContainer/RightSide/TabContainer/Map View/HeightmapOutput"]
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="LabelsToggles" type="VBoxContainer" parent="AspectRatioContainer/CenterContainer/HSplitContainer/RightSide/TabContainer/Map View"]
+custom_minimum_size = Vector2(100, 0)
+layout_mode = 2
+
+[node name="Input Map view" type="HBoxContainer" parent="AspectRatioContainer/CenterContainer/HSplitContainer/RightSide/TabContainer"]
+visible = false
+layout_mode = 2
+
+[node name="HeightmapOutput" type="VBoxContainer" parent="AspectRatioContainer/CenterContainer/HSplitContainer/RightSide/TabContainer/Input Map view"]
+layout_mode = 2
+
+[node name="MarginContainer" type="MarginContainer" parent="AspectRatioContainer/CenterContainer/HSplitContainer/RightSide/TabContainer/Input Map view/HeightmapOutput"]
+clip_contents = true
+layout_mode = 2
+size_flags_vertical = 3
+theme_override_constants/margin_left = 5
+theme_override_constants/margin_top = 10
+theme_override_constants/margin_right = 5
+theme_override_constants/margin_bottom = 10
+
+[node name="Panel" type="Panel" parent="AspectRatioContainer/CenterContainer/HSplitContainer/RightSide/TabContainer/Input Map view/HeightmapOutput/MarginContainer"]
+self_modulate = Color(0.192157, 0.192157, 0.192157, 1)
+layout_mode = 2
+
+[node name="InputMapContainer" type="CenterContainer" parent="AspectRatioContainer/CenterContainer/HSplitContainer/RightSide/TabContainer/Input Map view/HeightmapOutput/MarginContainer" node_paths=PackedStringArray("texture_rect", "tooltip")]
+unique_name_in_owner = true
+clip_contents = true
+custom_minimum_size = Vector2(512, 512)
+layout_mode = 2
+mouse_default_cursor_shape = 3
+script = ExtResource("2_hboem")
+texture_rect = NodePath("AspectRatioContainer/InputHmapTextureRect")
+tooltip = NodePath("Node/InputMouseToolTip")
+
+[node name="AspectRatioContainer" type="AspectRatioContainer" parent="AspectRatioContainer/CenterContainer/HSplitContainer/RightSide/TabContainer/Input Map view/HeightmapOutput/MarginContainer/InputMapContainer"]
+layout_mode = 2
+mouse_filter = 2
+
+[node name="Panel" type="Panel" parent="AspectRatioContainer/CenterContainer/HSplitContainer/RightSide/TabContainer/Input Map view/HeightmapOutput/MarginContainer/InputMapContainer/AspectRatioContainer"]
+self_modulate = Color(0.247059, 0.309804, 0.52549, 0.431373)
+layout_mode = 2
+mouse_filter = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_3khto")
+
+[node name="InputHmapTextureRect" type="TextureRect" parent="AspectRatioContainer/CenterContainer/HSplitContainer/RightSide/TabContainer/Input Map view/HeightmapOutput/MarginContainer/InputMapContainer/AspectRatioContainer"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(512, 512)
+layout_mode = 2
+mouse_filter = 2
+expand_mode = 5
+
+[node name="Node" type="Node" parent="AspectRatioContainer/CenterContainer/HSplitContainer/RightSide/TabContainer/Input Map view/HeightmapOutput/MarginContainer/InputMapContainer"]
+
+[node name="InputMouseToolTip" type="Label" parent="AspectRatioContainer/CenterContainer/HSplitContainer/RightSide/TabContainer/Input Map view/HeightmapOutput/MarginContainer/InputMapContainer/Node"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(120, 20)
+offset_top = 8.0
+offset_right = 1.0
+offset_bottom = 31.0
+theme_override_colors/font_shadow_color = Color(0, 0, 0, 1)
+theme_override_colors/font_outline_color = Color(0.192157, 0.192157, 0.192157, 1)
+text = "MOUSETOOLTIP"
+
+[node name="MapID" type="Label" parent="AspectRatioContainer/CenterContainer/HSplitContainer/RightSide/TabContainer/Input Map view/HeightmapOutput"]
+layout_mode = 2
+text = "Generation ID: "
+
+[node name="HBoxContainer2" type="HBoxContainer" parent="AspectRatioContainer/CenterContainer/HSplitContainer/RightSide/TabContainer/Input Map view/HeightmapOutput"]
+layout_mode = 2
+
+[node name="GenerateButton" type="Button" parent="AspectRatioContainer/CenterContainer/HSplitContainer/RightSide/TabContainer/Input Map view/HeightmapOutput/HBoxContainer2"]
+layout_mode = 2
+text = "Generate Heightmap
+"
+
+[node name="ExportButton" type="Button" parent="AspectRatioContainer/CenterContainer/HSplitContainer/RightSide/TabContainer/Input Map view/HeightmapOutput/HBoxContainer2"]
+layout_mode = 2
+text = "Export as image"
+
+[node name="OptionButton" type="OptionButton" parent="AspectRatioContainer/CenterContainer/HSplitContainer/RightSide/TabContainer/Input Map view/HeightmapOutput/HBoxContainer2"]
+layout_mode = 2
+item_count = 2
+popup/item_0/text = "PNG Image"
+popup/item_0/id = 0
+popup/item_1/text = "JPG Image"
+popup/item_1/id = 1
+
+[node name="AspectRatioContainer" type="AspectRatioContainer" parent="AspectRatioContainer/CenterContainer/HSplitContainer/RightSide/TabContainer/Input Map view/HeightmapOutput"]
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="TerrainImage Details" type="ScrollContainer" parent="AspectRatioContainer/CenterContainer/HSplitContainer/RightSide/TabContainer"]
+visible = false
+layout_mode = 2
+
+[node name="TerrainFeatures" type="VBoxContainer" parent="AspectRatioContainer/CenterContainer/HSplitContainer/RightSide/TabContainer/TerrainImage Details"]
+unique_name_in_owner = true
+layout_mode = 2
+script = ExtResource("4_ilf7b")
+
+[node name="Agent Areas" type="ScrollContainer" parent="AspectRatioContainer/CenterContainer/HSplitContainer/RightSide/TabContainer"]
+visible = false
+layout_mode = 2
+
+[node name="AgentAreasContainer" type="VBoxContainer" parent="AspectRatioContainer/CenterContainer/HSplitContainer/RightSide/TabContainer/Agent Areas"]
+unique_name_in_owner = true
+layout_mode = 2
+script = ExtResource("5_6x8s5")
+
+[node name="Result Comparison" type="MarginContainer" parent="AspectRatioContainer/CenterContainer/HSplitContainer/RightSide/TabContainer"]
+visible = false
+layout_mode = 2
+theme_override_constants/margin_left = 10
+theme_override_constants/margin_top = 10
+theme_override_constants/margin_right = 10
+theme_override_constants/margin_bottom = 10
+
+[node name="VBoxContainer" type="VBoxContainer" parent="AspectRatioContainer/CenterContainer/HSplitContainer/RightSide/TabContainer/Result Comparison"]
+layout_mode = 2
+
+[node name="ResultComparisonUI" type="HSplitContainer" parent="AspectRatioContainer/CenterContainer/HSplitContainer/RightSide/TabContainer/Result Comparison/VBoxContainer"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 400)
+layout_mode = 2
+split_offset = 350
+script = ExtResource("6_ddguo")
+
+[node name="Input" type="VBoxContainer" parent="AspectRatioContainer/CenterContainer/HSplitContainer/RightSide/TabContainer/Result Comparison/VBoxContainer/ResultComparisonUI"]
+unique_name_in_owner = true
+layout_mode = 2
+
+[node name="Label" type="Label" parent="AspectRatioContainer/CenterContainer/HSplitContainer/RightSide/TabContainer/Result Comparison/VBoxContainer/ResultComparisonUI/Input"]
+layout_mode = 2
+text = "Input Terrain Values"
+horizontal_alignment = 1
+
+[node name="HSeparator" type="HSeparator" parent="AspectRatioContainer/CenterContainer/HSplitContainer/RightSide/TabContainer/Result Comparison/VBoxContainer/ResultComparisonUI/Input"]
+layout_mode = 2
+
+[node name="Output" type="VBoxContainer" parent="AspectRatioContainer/CenterContainer/HSplitContainer/RightSide/TabContainer/Result Comparison/VBoxContainer/ResultComparisonUI"]
+unique_name_in_owner = true
+layout_mode = 2
+
+[node name="Label" type="Label" parent="AspectRatioContainer/CenterContainer/HSplitContainer/RightSide/TabContainer/Result Comparison/VBoxContainer/ResultComparisonUI/Output"]
+layout_mode = 2
+text = "Generated Terrain Values"
+horizontal_alignment = 1
+
+[node name="HSeparator" type="HSeparator" parent="AspectRatioContainer/CenterContainer/HSplitContainer/RightSide/TabContainer/Result Comparison/VBoxContainer/ResultComparisonUI/Output"]
+layout_mode = 2
+
+[node name="HBoxContainer" type="HBoxContainer" parent="AspectRatioContainer/CenterContainer/HSplitContainer/RightSide/TabContainer/Result Comparison/VBoxContainer"]
+layout_mode = 2
+
+[node name="ExportStats" type="Button" parent="AspectRatioContainer/CenterContainer/HSplitContainer/RightSide/TabContainer/Result Comparison/VBoxContainer/HBoxContainer"]
+custom_minimum_size = Vector2(120, 0)
+layout_mode = 2
+text = "Export to text file"
+
+[node name="Refresh" type="Button" parent="AspectRatioContainer/CenterContainer/HSplitContainer/RightSide/TabContainer/Result Comparison/VBoxContainer/HBoxContainer"]
+layout_mode = 2
+text = "Refresh"
+
+[connection signal="toggled" from="AspectRatioContainer/CenterContainer/HSplitContainer/LeftSide/VBoxContainer/HBoxContainer2/CheckButton" to="." method="_on_check_button_toggled"]
+[connection signal="files_selected" from="AspectRatioContainer/CenterContainer/HSplitContainer/LeftSide/VBoxContainer/HeightmapList/HmapFileDialog" to="." method="_on_hmap_file_dialog_files_selected"]
+[connection signal="pressed" from="AspectRatioContainer/CenterContainer/HSplitContainer/LeftSide/VBoxContainer/SelectHeightDataFiles" to="." method="_on_select_height_data_files_pressed"]
+[connection signal="files_selected" from="AspectRatioContainer/CenterContainer/HSplitContainer/LeftSide/VBoxContainer/TerrainDataList/TerrainFileDialog" to="." method="_on_terrain_file_dialog_files_selected"]
+[connection signal="pressed" from="AspectRatioContainer/CenterContainer/HSplitContainer/LeftSide/VBoxContainer/SelectTerrainDataFiles" to="." method="_on_select_terrain_data_files_pressed"]
+[connection signal="text_changed" from="AspectRatioContainer/CenterContainer/HSplitContainer/LeftSide/VBoxContainer/LineEdit" to="." method="_on_line_edit_text_changed"]
+[connection signal="value_changed" from="AspectRatioContainer/CenterContainer/HSplitContainer/LeftSide/VBoxContainer/HBoxContainer/SpinBoxMapWidth" to="." method="_on_spin_box_map_width_value_changed"]
+[connection signal="value_changed" from="AspectRatioContainer/CenterContainer/HSplitContainer/LeftSide/VBoxContainer/HBoxContainer/SpinBoxMapHeight" to="." method="_on_spin_box_map_height_value_changed"]
+[connection signal="value_changed" from="AspectRatioContainer/CenterContainer/HSplitContainer/LeftSide/VBoxContainer/SpinBox" to="." method="_on_spin_box_value_changed"]
+[connection signal="value_changed" from="AspectRatioContainer/CenterContainer/HSplitContainer/LeftSide/VBoxContainer/HBoxContainer4/SpinBoxGeneSize" to="." method="_on_spin_box_gene_size_value_changed"]
+[connection signal="value_changed" from="AspectRatioContainer/CenterContainer/HSplitContainer/LeftSide/VBoxContainer/HBoxContainer4/SpinBoxPopulation" to="." method="_on_spin_box_population_value_changed"]
+[connection signal="value_changed" from="AspectRatioContainer/CenterContainer/HSplitContainer/LeftSide/VBoxContainer/HBoxContainer4/SpinBoxGenerations" to="." method="_on_spin_box_generations_value_changed"]
+[connection signal="pressed" from="AspectRatioContainer/CenterContainer/HSplitContainer/LeftSide/VBoxContainer/Button" to="." method="_on_button_pressed"]
+[connection signal="pressed" from="AspectRatioContainer/CenterContainer/HSplitContainer/LeftSide/VBoxContainer/Button2" to="." method="_on_button_2_pressed"]
+[connection signal="pressed" from="AspectRatioContainer/CenterContainer/HSplitContainer/RightSide/TabContainer/Map View/HeightmapOutput/HBoxContainer2/GenerateButton" to="." method="_on_generate_button_pressed"]
+[connection signal="pressed" from="AspectRatioContainer/CenterContainer/HSplitContainer/RightSide/TabContainer/Map View/HeightmapOutput/HBoxContainer2/ExportButton" to="." method="_on_export_button_pressed"]
+[connection signal="pressed" from="AspectRatioContainer/CenterContainer/HSplitContainer/RightSide/TabContainer/Input Map view/HeightmapOutput/HBoxContainer2/GenerateButton" to="." method="_on_generate_button_pressed"]
+[connection signal="pressed" from="AspectRatioContainer/CenterContainer/HSplitContainer/RightSide/TabContainer/Input Map view/HeightmapOutput/HBoxContainer2/ExportButton" to="." method="_on_export_button_pressed"]
+[connection signal="pressed" from="AspectRatioContainer/CenterContainer/HSplitContainer/RightSide/TabContainer/Result Comparison/VBoxContainer/HBoxContainer/ExportStats" to="AspectRatioContainer/CenterContainer/HSplitContainer/RightSide/TabContainer/Result Comparison/VBoxContainer/ResultComparisonUI" method="_on_export_stats_pressed"]
+[connection signal="pressed" from="AspectRatioContainer/CenterContainer/HSplitContainer/RightSide/TabContainer/Result Comparison/VBoxContainer/HBoxContainer/Refresh" to="." method="_on_refresh_pressed"]

@@ -1,24 +1,30 @@
 extends Control
 
+
+@export var labels : Control
+
 var DisplayRect = preload("res://addons/kuikka_terrain_gen/ui/area_overlay_texture.gd")
 var GeneDisplayRect = preload("res://addons/kuikka_terrain_gen/ui/genes_overlay_texture.gd")
 
 var areas : Dictionary
 
-var colors : Array[Color] = [Color.RED, Color.GREEN, Color.BLUE]
+var colors : Array[Color] = [Color.RED, Color.GREEN, Color.BLUE, Color.GOLDENROD]
 
-var gene_colors : Array[Color] = [Color.MAROON, Color.DARK_SEA_GREEN, Color.CADET_BLUE]
+var gene_colors : Array[Color] = [Color.MAROON, Color.DARK_SEA_GREEN, Color.CADET_BLUE, Color.YELLOW, ]
 
 ## [Control] node holding drawn textures.
 @onready var holder = $Textures
-@onready var labels = $VBoxContainer
 
 
 func _ready():
 	# Make gene point colors transparent
+	for c in colors.size():
+		colors[c].a = 0.9
 	for c in gene_colors.size():
-		gene_colors[c].a = 0.95
-
+		gene_colors[c].a = 0.6
+	
+	if not labels:
+		labels = $VBoxContainer
 
 func draw_areas(new_areas: Dictionary):
 	areas = new_areas
@@ -47,8 +53,12 @@ func draw_areas(new_areas: Dictionary):
 		holder.add_child(display)
 		
 		# Draw curve paths
+		# if areas[area]["agent_travel"].size() > 0:
 		display.draw_area(areas[area]["agent_travel"], colors[color_i])
+		# else:
+		#	display.draw_area(areas[area]["covered_points"], colors[color_i])
 		
+		display.mouse_filter = Control.MOUSE_FILTER_IGNORE
 		# TODO: Draw covered points delaunay
 		
 		# Set label
@@ -57,6 +67,12 @@ func draw_areas(new_areas: Dictionary):
 		l.text = area
 		l.set("theme_override_colors/font_color", colors[color_i])
 		
+		# Add toggle 
+		var btn = CheckButton.new()
+		btn.toggled.connect(func(toggled): display.visible = toggled)
+		labels.add_child(btn)
+		btn.toggle_mode = true
+		btn.button_pressed = true
 		
 		color_i += 1
 		color_i = clamp(color_i, 0, colors.size())
@@ -74,6 +90,14 @@ func draw_areas(new_areas: Dictionary):
 		holder.add_child(gdisplay)
 		
 		gdisplay.draw_area(areas[area]["gene_points"], gene_colors[color_i])
+		gdisplay.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		
+		# Add toggle 
+		var gbtn = CheckButton.new()
+		gbtn.toggled.connect(func(toggled): gdisplay.visible = toggled)
+		gene_labels.append(gbtn)
+		gbtn.toggle_mode = true
+		gbtn.button_pressed = true
 
 	# Add gene labels after list separator
 	# labels.add_child(HSeparator.new())

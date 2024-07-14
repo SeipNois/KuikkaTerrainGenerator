@@ -28,6 +28,7 @@ layout_mode = 2
 layout_mode = 2
 
 [node name="Sources" type="TextEdit" parent="CenterContainer/HBoxContainer/VBoxContainer"]
+unique_name_in_owner = true
 custom_minimum_size = Vector2(0, 30)
 layout_mode = 2
 
@@ -46,6 +47,7 @@ access = 2
 use_native_dialog = true
 
 [node name="Destination" type="TextEdit" parent="CenterContainer/HBoxContainer/VBoxContainer"]
+unique_name_in_owner = true
 custom_minimum_size = Vector2(0, 30)
 layout_mode = 2
 
@@ -66,10 +68,18 @@ use_native_dialog = true
 unique_name_in_owner = true
 layout_mode = 2
 
+[node name="Label" type="Label" parent="CenterContainer/HBoxContainer/VBoxContainer"]
+layout_mode = 2
+text = "Image bit depth"
+
+[node name="SpinBoxColor" type="OptionButton" parent="CenterContainer/HBoxContainer/VBoxContainer"]
+unique_name_in_owner = true
+layout_mode = 2
+
 [node name="ConvertImagesButton" type="Button" parent="CenterContainer/HBoxContainer/VBoxContainer"]
 unique_name_in_owner = true
 layout_mode = 2
-text = "Convert terrain images"
+text = "Convert GeoTIFF"
 
 [node name="VBoxContainer2" type="VBoxContainer" parent="CenterContainer/HBoxContainer"]
 layout_mode = 2
@@ -83,11 +93,32 @@ unique_name_in_owner = true
 layout_mode = 2
 text = "Calculate FFT"
 
+[node name="ImageMagickFormatOption" type="OptionButton" parent="CenterContainer/HBoxContainer/VBoxContainer2"]
+unique_name_in_owner = true
+layout_mode = 2
+
+[node name="Label" type="Label" parent="CenterContainer/HBoxContainer/VBoxContainer2"]
+layout_mode = 2
+text = "Image bit depth"
+
+[node name="SpinBoxMagickColor" type="OptionButton" parent="CenterContainer/HBoxContainer/VBoxContainer2"]
+unique_name_in_owner = true
+layout_mode = 2
+
+[node name="ConvertFormats" type="Button" parent="CenterContainer/HBoxContainer/VBoxContainer2"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Convert ImageMagick"
+
 [connection signal="pressed" from="CenterContainer/HBoxContainer/VBoxContainer/SelectSourceBtn" to="CenterContainer/HBoxContainer/VBoxContainer/SelectSourceBtn" method="_on_pressed"]
 [connection signal="files_selected" from="CenterContainer/HBoxContainer/VBoxContainer/SelectSourceBtn/FileDialog" to="." method="_on_file_dialog_source_files_selected"]
 [connection signal="pressed" from="CenterContainer/HBoxContainer/VBoxContainer/SelectDestinationBtn" to="CenterContainer/HBoxContainer/VBoxContainer/SelectDestinationBtn" method="_on_pressed"]
 [connection signal="dir_selected" from="CenterContainer/HBoxContainer/VBoxContainer/SelectDestinationBtn/FileDialog" to="." method="_on_file_dialog_destination_dir_selected"]
 [connection signal="item_selected" from="CenterContainer/HBoxContainer/VBoxContainer/ImageFormatOption" to="." method="_on_image_format_option_item_selected"]
+[connection signal="item_selected" from="CenterContainer/HBoxContainer/VBoxContainer/SpinBoxColor" to="." method="_on_spin_box_color_item_selected"]
 [connection signal="pressed" from="CenterContainer/HBoxContainer/VBoxContainer/ConvertImagesButton" to="." method="_on_button_pressed"]
 [connection signal="pressed" from="CenterContainer/HBoxContainer/VBoxContainer/ConvertImagesButton" to="." method="_on_convert_images_button_pressed"]
 [connection signal="pressed" from="CenterContainer/HBoxContainer/VBoxContainer2/CalculateImagesFFT" to="." method="_on_calculate_images_fft_pressed"]
+[connection signal="item_selected" from="CenterContainer/HBoxContainer/VBoxContainer2/ImageMagickFormatOption" to="." method="_on_image_magick_format_option_item_selected"]
+[connection signal="item_selected" from="CenterContainer/HBoxContainer/VBoxContainer2/SpinBoxMagickColor" to="." method="_on_spin_box_magick_color_item_selected"]
+[connection signal="pressed" from="CenterContainer/HBoxContainer/VBoxContainer2/ConvertFormats" to="." method="_on_convert_formats_pressed"]

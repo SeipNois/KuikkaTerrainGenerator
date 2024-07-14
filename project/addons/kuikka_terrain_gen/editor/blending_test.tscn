@@ -1,0 +1,219 @@
+[gd_scene load_steps=2 format=3 uid="uid://c48bs14ov25ls"]
+
+[ext_resource type="Script" path="res://addons/kuikka_terrain_gen/editor/blending_test.gd" id="1_bbctt"]
+
+[node name="BlendingTest" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_bbctt")
+
+[node name="CenterContainer" type="CenterContainer" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="HBoxContainer" type="HBoxContainer" parent="CenterContainer"]
+custom_minimum_size = Vector2(400, 0)
+layout_mode = 2
+
+[node name="VBoxLeft" type="VBoxContainer" parent="CenterContainer/HBoxContainer"]
+custom_minimum_size = Vector2(200, 0)
+layout_mode = 2
+
+[node name="LoadedImage" type="TextureRect" parent="CenterContainer/HBoxContainer/VBoxLeft"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(120, 120)
+layout_mode = 2
+expand_mode = 5
+
+[node name="Panel" type="Panel" parent="CenterContainer/HBoxContainer/VBoxLeft/LoadedImage"]
+show_behind_parent = true
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="LoadedMask" type="TextureRect" parent="CenterContainer/HBoxContainer/VBoxLeft"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(120, 120)
+layout_mode = 2
+expand_mode = 5
+
+[node name="Panel" type="Panel" parent="CenterContainer/HBoxContainer/VBoxLeft/LoadedMask"]
+show_behind_parent = true
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="OpenImageFileDialog" type="FileDialog" parent="CenterContainer/HBoxContainer/VBoxLeft"]
+unique_name_in_owner = true
+title = "Open a File"
+ok_button_text = "Avaa"
+file_mode = 0
+access = 2
+filters = PackedStringArray("*.png", "*.exr", "*")
+use_native_dialog = true
+
+[node name="OpenFileButton" type="Button" parent="CenterContainer/HBoxContainer/VBoxLeft"]
+layout_mode = 2
+text = "Open Image"
+
+[node name="OpenImageMaskFileDialog" type="FileDialog" parent="CenterContainer/HBoxContainer/VBoxLeft"]
+unique_name_in_owner = true
+title = "Open a File"
+size = Vector2i(299, 154)
+ok_button_text = "Avaa"
+file_mode = 0
+access = 2
+filters = PackedStringArray("*.png", "*")
+use_native_dialog = true
+
+[node name="OpenFileMaskButton" type="Button" parent="CenterContainer/HBoxContainer/VBoxLeft"]
+layout_mode = 2
+text = "Open Mask Image"
+
+[node name="Label" type="Label" parent="CenterContainer/HBoxContainer/VBoxLeft"]
+layout_mode = 2
+text = "Blend position
+"
+
+[node name="HBoxContainer" type="HBoxContainer" parent="CenterContainer/HBoxContainer/VBoxLeft"]
+layout_mode = 2
+
+[node name="SpinBoxX" type="SpinBox" parent="CenterContainer/HBoxContainer/VBoxLeft/HBoxContainer"]
+layout_mode = 2
+max_value = 2000.0
+allow_greater = true
+
+[node name="SpinBoxY" type="SpinBox" parent="CenterContainer/HBoxContainer/VBoxLeft/HBoxContainer"]
+layout_mode = 2
+max_value = 2000.0
+allow_greater = true
+
+[node name="HSeparator2" type="HSeparator" parent="CenterContainer/HBoxContainer/VBoxLeft"]
+layout_mode = 2
+
+[node name="Label3" type="Label" parent="CenterContainer/HBoxContainer/VBoxLeft"]
+layout_mode = 2
+text = "Blend Rect"
+
+[node name="HBoxContainer2" type="HBoxContainer" parent="CenterContainer/HBoxContainer/VBoxLeft"]
+layout_mode = 2
+
+[node name="Label" type="Label" parent="CenterContainer/HBoxContainer/VBoxLeft/HBoxContainer2"]
+layout_mode = 2
+text = "X "
+
+[node name="SpinBoxRX" type="SpinBox" parent="CenterContainer/HBoxContainer/VBoxLeft/HBoxContainer2"]
+layout_mode = 2
+max_value = 2000.0
+allow_greater = true
+
+[node name="Label2" type="Label" parent="CenterContainer/HBoxContainer/VBoxLeft/HBoxContainer2"]
+layout_mode = 2
+text = "Y "
+
+[node name="SpinBoxRY" type="SpinBox" parent="CenterContainer/HBoxContainer/VBoxLeft/HBoxContainer2"]
+layout_mode = 2
+max_value = 2000.0
+allow_greater = true
+
+[node name="HBoxContainer3" type="HBoxContainer" parent="CenterContainer/HBoxContainer/VBoxLeft"]
+layout_mode = 2
+
+[node name="Label" type="Label" parent="CenterContainer/HBoxContainer/VBoxLeft/HBoxContainer3"]
+layout_mode = 2
+text = "W"
+
+[node name="SpinBoxRW" type="SpinBox" parent="CenterContainer/HBoxContainer/VBoxLeft/HBoxContainer3"]
+layout_mode = 2
+max_value = 2000.0
+allow_greater = true
+
+[node name="Label2" type="Label" parent="CenterContainer/HBoxContainer/VBoxLeft/HBoxContainer3"]
+layout_mode = 2
+text = "H"
+
+[node name="SpinBoxRH" type="SpinBox" parent="CenterContainer/HBoxContainer/VBoxLeft/HBoxContainer3"]
+layout_mode = 2
+max_value = 2000.0
+allow_greater = true
+
+[node name="Label2" type="Label" parent="CenterContainer/HBoxContainer/VBoxLeft"]
+layout_mode = 2
+text = "Blend method
+"
+
+[node name="OptionButton" type="OptionButton" parent="CenterContainer/HBoxContainer/VBoxLeft"]
+layout_mode = 2
+item_count = 7
+selected = 0
+popup/item_0/text = "Multiply"
+popup/item_0/id = 0
+popup/item_1/text = "Sum"
+popup/item_1/id = 1
+popup/item_2/text = "Laplace"
+popup/item_2/id = 2
+popup/item_3/text = "Difference"
+popup/item_3/id = 3
+popup/item_4/text = "poisson"
+popup/item_4/id = 4
+popup/item_5/text = "Mean Difference"
+popup/item_5/id = 5
+popup/item_6/text = "Difference multiply"
+popup/item_6/id = 6
+
+[node name="HSeparator" type="HSeparator" parent="CenterContainer/HBoxContainer/VBoxLeft"]
+layout_mode = 2
+
+[node name="ProcessButton" type="Button" parent="CenterContainer/HBoxContainer/VBoxLeft"]
+layout_mode = 2
+text = "Process"
+
+[node name="VBoxRight" type="VBoxContainer" parent="CenterContainer/HBoxContainer"]
+custom_minimum_size = Vector2(200, 0)
+layout_mode = 2
+
+[node name="ResultImage" type="TextureRect" parent="CenterContainer/HBoxContainer/VBoxRight"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(400, 400)
+layout_mode = 2
+
+[node name="Panel" type="Panel" parent="CenterContainer/HBoxContainer/VBoxRight/ResultImage"]
+show_behind_parent = true
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="Label" type="Label" parent="CenterContainer/HBoxContainer/VBoxRight/ResultImage/Panel"]
+layout_mode = 0
+text = "Blend position
+"
+
+[connection signal="file_selected" from="CenterContainer/HBoxContainer/VBoxLeft/OpenImageFileDialog" to="." method="_on_open_image_file_dialog_file_selected"]
+[connection signal="pressed" from="CenterContainer/HBoxContainer/VBoxLeft/OpenFileButton" to="." method="_on_open_file_button_pressed"]
+[connection signal="file_selected" from="CenterContainer/HBoxContainer/VBoxLeft/OpenImageMaskFileDialog" to="." method="_on_open_image_mask_file_dialog_file_selected"]
+[connection signal="pressed" from="CenterContainer/HBoxContainer/VBoxLeft/OpenFileMaskButton" to="." method="_on_open_file_mask_button_pressed"]
+[connection signal="value_changed" from="CenterContainer/HBoxContainer/VBoxLeft/HBoxContainer/SpinBoxX" to="." method="_on_spin_box_x_value_changed"]
+[connection signal="value_changed" from="CenterContainer/HBoxContainer/VBoxLeft/HBoxContainer/SpinBoxY" to="." method="_on_spin_box_y_value_changed"]
+[connection signal="value_changed" from="CenterContainer/HBoxContainer/VBoxLeft/HBoxContainer2/SpinBoxRX" to="." method="_on_spin_box_rx_value_changed"]
+[connection signal="value_changed" from="CenterContainer/HBoxContainer/VBoxLeft/HBoxContainer2/SpinBoxRY" to="." method="_on_spin_box_ry_value_changed"]
+[connection signal="value_changed" from="CenterContainer/HBoxContainer/VBoxLeft/HBoxContainer3/SpinBoxRW" to="." method="_on_spin_box_rw_value_changed"]
+[connection signal="value_changed" from="CenterContainer/HBoxContainer/VBoxLeft/HBoxContainer3/SpinBoxRH" to="." method="_on_spin_box_rh_value_changed"]
+[connection signal="item_selected" from="CenterContainer/HBoxContainer/VBoxLeft/OptionButton" to="." method="_on_option_button_item_selected"]
+[connection signal="pressed" from="CenterContainer/HBoxContainer/VBoxLeft/ProcessButton" to="." method="_on_process_button_pressed"]
