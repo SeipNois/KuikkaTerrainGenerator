@@ -15,8 +15,8 @@ class_name TerrainServerGD extends Node
 signal generation_step_completed
 signal agent_generation_finished
 signal genetic_operations_finished
-signal generation_finished(heightmap, areas, terr_img)
-
+signal generation_finished(heightmap, areas, terr_img, gen_time)
+signal export_map(heightmap, areas, terr_img)
 
 var _instance: TerrainServerGD
 static var global_instance: TerrainServerGD
@@ -110,9 +110,15 @@ func generate_terrain_from_reference(heightmaps: Array, gml: Array, parameters: 
 	terrain_image.evolution.generations = parameters.generations
 	terrain_image.evolution.population_size = parameters.population
 
-	var rang = terrain_image.height_profile.height_range
-	var level = terrain_image.height_profile.mean + parameters.start_level
-	level = clampf(level, 0.0, 1.0)
+	var rang = terrain_image.height_profile.represent_range
+
+	var level = terrain_image.height_profile.mean/256 + parameters.start_level# (terrain_image.height_profile.mean-rang.x)/(rang.y-rang.x) + parameters.start_level
+	
+	print_debug("scales ", parameters.image_height_scale, " ", terrain_image.height_profile.represent_range)
+	print_debug("STARTING LEVEL ", level)
+	#level #/= (rang.y-rang.x)
+	
+	#print_debug("STARTING LEVEL NORMALIZED", level)
 	
 	var color = Color(level, level, level, 1)
 	heightmap.fill(color)
@@ -128,6 +134,7 @@ func generate_terrain_from_reference(heightmaps: Array, gml: Array, parameters: 
 	
 	# Wait for agent generation to finish
 	await agent_generation_finished
+	export_map.emit(heightmap, agent_areas, terrain_image)
 	
 	# FIXME: DEBUG REMOVE to allow agent output
 	# heightmap.fill(parameters.start_level)
@@ -152,7 +159,7 @@ func generate_terrain_from_reference(heightmaps: Array, gml: Array, parameters: 
 	print_debug("Finished generation ", _end_ticks, "\nTook: ",
 	str(_end_ticks-_start_ticks))
 	
-	generation_finished.emit(heightmap, agent_areas, terrain_image)
+	generation_finished.emit(heightmap, agent_areas, terrain_image, Vector2(_start_ticks, _end_ticks))
 	
 
 ## Update heightsamples sorting based on new parameters.

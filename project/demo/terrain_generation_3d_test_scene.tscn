@@ -32,10 +32,10 @@ noise = SubResource("FastNoiseLite_q55jj")
 _shader_parameters = {
 "_mouse_layer": 2147483648,
 "auto_base_texture": 1,
-"auto_height_reduction": 0.177,
+"auto_height_reduction": 0.032,
 "auto_overlay_texture": 0,
-"auto_slope": 4.994,
-"blend_sharpness": 0.987,
+"auto_slope": 2.423,
+"blend_sharpness": 0.347,
 "height_blending": true,
 "macro_variation1": Color(1, 1, 1, 1),
 "macro_variation2": Color(1, 1, 1, 1),

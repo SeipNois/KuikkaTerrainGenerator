@@ -63,11 +63,12 @@ func setup_operations():
 func apply_genetic_operations(apply_weights:=false) -> Image:
 	var _sample: Image = Image.load_from_file(height_sample)
 	var path = ProjectSettings.globalize_path(Chromosome.TEMP_PATH+str(get_instance_id())+".png")
-	
+
 	# Save original height sample as image.
 	_sample.resize(radius*2, radius*2)
 	
 	_sample.save_png(path)
+	# _sample.save_exr(path)
 	_sample = Image.load_from_file(path)
 	
 	if apply_weights:
@@ -76,8 +77,9 @@ func apply_genetic_operations(apply_weights:=false) -> Image:
 			# print_debug("Commencing operation ", op.name, " on ", _sample)
 			# _sample = await op.apply_operation(_sample)
 			_sample = await op.apply_operation_path(path)
+			_sample.save_png(path)
 			
-			var mean = await KuikkaImgUtil.im_fetch_img_stats(path)
+			var mean = await KuikkaImgUtil.im_fetch_img_stats(path).mean
 			if mean == 0:
 				printerr("Failed genetic operation with ", op, " operation of total \n", genetic_operations)
 	

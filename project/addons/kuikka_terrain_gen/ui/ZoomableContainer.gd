@@ -84,7 +84,7 @@ func _input(event):
 			height = texture_rect.texture.get_image().get_pixel(round(map_point.x/controlled_child.scale.x),round(map_point.y/controlled_child.scale.y)).r
 		var real_value = height_range.x + (height_range.y-height_range.x) * height
 		
-		tooltip.text = "H: %f (%d, %d) \n[Normalized: %f] " % [real_value, map_point.x, map_point.y, height]
+		tooltip.text = "H: %f (%d, %d) \n[Normalized: %f] " % [real_value, map_point.x/controlled_child.scale.x, map_point.y/controlled_child.scale.y, height]
 		
 
 func _on_mouse_entered(val:bool=false):

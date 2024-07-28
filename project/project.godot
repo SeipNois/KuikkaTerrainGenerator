@@ -17,9 +17,6 @@ config/icon="res://icon.svg"
 [autoload]
 
 FFT="*res://addons/godot_fft/Fft.gd"
-KuikkaTerrainGen="*res://addons/kuikka_terrain_gen/components/terrain_server.tscn"
-KuikkaTimer="*res://addons/kuikka_terrain_gen/util/global_timer.tscn"
-KuikkaImgUtil="*res://addons/kuikka_terrain_gen/util/image_utils.tscn"
 
 [dotnet]
 
@@ -66,11 +63,11 @@ down={
 "events": [Object(InputEventKey,"resource_local_to_scene":false,"resource_name":"","device":-1,"window_id":0,"alt_pressed":false,"shift_pressed":false,"ctrl_pressed":false,"meta_pressed":false,"pressed":false,"keycode":0,"physical_keycode":4194326,"key_label":0,"unicode":0,"echo":false,"script":null)
 ]
 }
-
-[kuikka_terrain_gen]
-
-gdal_path="H:/Tiedostot/Opiskelu/diplomityö/kuikka-project/gdal/OSGeo4W/bin"
-image_magick_path="H:/Program Files/ImageMagick-7.1.1-Q16-HDRI"
+free_mouse={
+"deadzone": 0.5,
+"events": [Object(InputEventKey,"resource_local_to_scene":false,"resource_name":"","device":-1,"window_id":0,"alt_pressed":false,"shift_pressed":false,"ctrl_pressed":false,"meta_pressed":false,"pressed":false,"keycode":0,"physical_keycode":82,"key_label":0,"unicode":114,"echo":false,"script":null)
+]
+}
 
 [rendering]
 

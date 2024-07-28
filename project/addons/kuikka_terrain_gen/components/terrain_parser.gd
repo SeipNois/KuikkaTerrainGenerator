@@ -53,6 +53,11 @@ const FEATURE_NAMES = {
 		"feature": "KallioAlue",
 		"set": "kallioAlueet",
 		"parser": LinearRingParser
+	},
+	"maatalousmaa": {
+		"feature": "Maatalousmaa",
+		"set": "maatalousmaat",
+		"parser": LinearRingParser
 	}
 }
 
@@ -61,7 +66,7 @@ const FEATURE_NAMES = {
 func parse_data(hmaps: Array, gml: Array, parameters: ImageGenParams):
 	_feature_image = TerrainFeatureImage.new()
 	
-	parse_heightmap_data(hmaps)
+	parse_heightmap_data(hmaps, parameters)
 	parse_gml_data(gml)
 	
 	_image_scale_size_values(_feature_image, parameters)
@@ -89,8 +94,26 @@ func _feature_scale_size_values(feature: TerrainFeature, parameters: ImageGenPar
 	return feature
 
 
+static func _heightmap_scale_values(height_profile: HeightProfile, parameters: ImageGenParams, format):
+	var scale = parameters.image_height_scale
+	
+	## [Image.Format] 15 for 16-bit image else 8-bit color depth
+	var depth = 65536 if format == 15 else 256
+	
+	height_profile.min = scale_value(height_profile.min, depth, scale)
+	height_profile.max = scale_value(height_profile.max, depth, scale)
+	height_profile.mean = scale_value(height_profile.mean, depth, scale)
+	height_profile.median = scale_value(height_profile.median, depth, scale)
+	height_profile.std_dev = scale_value(height_profile.std_dev, depth, scale)
+	return height_profile
+
+
+static func scale_value(value: float, depth: float, scale: Vector2):
+	return scale.x + value/depth * (scale.y-scale.x)
+
+
 ## Create TerrainFeatureImage content from heightmaps.
-func parse_heightmap_data(hmaps:Array):
+func parse_heightmap_data(hmaps:Array, parameters: ImageGenParams):
 	var results = []
 	for hmap in hmaps:
 		var result = await _parse_heightmap(hmap)
@@ -98,12 +121,14 @@ func parse_heightmap_data(hmaps:Array):
 	
 	var len = results.size()
 	
+	var format = Image.load_from_file(hmaps[0]).get_format()
+	
 	# If only one heightmap is used, use its result as profile.
 	if results.size() == 1:
 		## FIXME: How are values scaled when outside 8 bit 0-255 range???
 		_feature_image.height_profile = results[0]
 		#var h_stats = KuikkaImgUtil.gdal_fetch_img_stats(hmaps[0])
-		_feature_image.height_profile.height_range = Vector2(0, 255)# Vector2(h_stats.min, h_stats.max)
+		#_feature_image.height_profile.height_range = Vector2(0, 65535) if format == 15 else Vector2(0, 255)# Vector2(h_stats.min, h_stats.max)
 		
 	# Create resulting profile as mean of heightmaps
 	else:
@@ -118,8 +143,12 @@ func parse_heightmap_data(hmaps:Array):
 		## when using multiple maps.
 		#var h_stats = KuikkaImgUtil.gdal_fetch_img_stats(hmaps[0])
 		
-		profile.height_range = Vector2(0, 255)# Vector2(h_stats.min, h_stats.max)
+		print_debug("TerrainParser image format ", format)
 		_feature_image.height_profile = profile
+
+	_feature_image.height_profile.height_range = Vector2(0, 255) #if format == 15 else Vector2(0, 255)# Vector2(h_stats.min, h_stats.max)
+	# _feature_image.height_profile = _heightmap_scale_values(_feature_image.height_profile, parameters, format)
+	_feature_image.height_profile.represent_range = parameters.image_height_scale
 
 
 ## Create TerrainFeatureImage content from GML (XML) files.
@@ -141,7 +170,7 @@ func parse_gml_data(files:Array):
 		# print_debug(key, " ", feature.get_properties())
 		for item in items:
 			feature = item.sum(feature)
-			print_debug(key, " ", feature.get_properties())
+			# print_debug(key, " ", feature.get_properties())
 			# print_debug("D ", feature.density)
 			
 		feature.divide_by(len)
@@ -187,6 +216,8 @@ func _parse_gml(path: String) -> Dictionary:
 		if node:
 			result[key] = feature_from_gml(key, node) 
 		else:
+			# Set to empty feature
+			result[key] = TerrainFeature.new()
 			printerr("Feature data not found in gml. Omitting key '%s'" % key)
 	return result
 
@@ -206,14 +237,14 @@ func feature_from_gml(key: String, gml: XMLNode):
 	
 	if result.size() == 0:
 		push_error("Failed to parse GML file.")
-		return null
+		return TerrainFeature.new()
 	
 	var sizes = result.map(func(x): return x[0])
 	var heights = result.map(func(x): return x[1])
 	
 	if not sizes or not heights:
 		push_error("Failed to parse GML file.")
-		return null
+		return TerrainFeature.new()
 	
 	# Create feature as mean of feature definitions.
 	

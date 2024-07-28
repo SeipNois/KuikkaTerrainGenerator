@@ -30,6 +30,28 @@ func dict_to_height_profile(dict: Dictionary) -> HeightProfile:
 	return hprofile
 
 
+
+## Try to parse [Dictionary] into [HeightProfile] format.
+static func terrain_image_to_dict(timg: TerrainFeatureImage) -> Dictionary:
+	const KEYS_HPROFILE = ["min", "max", "mean", "median", "std_dev", "kurtosis", "entropy", "skewness"]
+	const KEYS_FEATURE = ["size_min", "size_max", "size_mean", "size_median", "size_std_dev", "gen_height_min", "gen_height_max", "gen_height_mean", "gen_height_median", "gen_height_std_dev"]
+	
+	var dict = {}
+	
+	dict["height_profile"] = {}
+	
+	for key in KEYS_HPROFILE:
+		dict.height_profile[key] = timg.height_profile.get(key)
+	
+	for feature in timg.features.keys():
+		dict[feature] = {}
+		for key in KEYS_FEATURE:
+			dict[feature][key] = timg.features[feature].get(key)
+	
+	return dict
+
+
+
 ## NOTE: Uses red channel, considering image monochrome.
 func img_get_min(path : String) -> float:
 	return 0
@@ -499,7 +521,7 @@ static func blend_diff_mult(dest_img: Image, src_img: Image, rect: Rect2i, pos:V
 		#badd *= sqrt(1-base.b) if badd > 0 else sqrt(base.b)
 		
 		# get values as mean
-		color.r = (color.r + color.r+radd) / (+offset+(-0.3*sign(radd)))
+		color.r = (color.r + color.r+radd) / (2+(-0.3*sign(radd)))
 		color.g = (color.g + color.g+radd) / (2+(-0.3*sign(gadd)))
 		color.b = (color.b + color.b+radd) / (2+(-0.3*sign(badd)))
 		
@@ -707,8 +729,7 @@ func blend_mean_diff(dest_img: Image, src_img: Image, rect: Rect2i, pos:Vector2i
 		var x = i % w
 		var y = floor(i / w)
 		
-		# Use red channel (grayscale images), Gradient as mean difference
-		# to neighbours.
+		# Use red channel (grayscale images)
 		var base = src_img.get_pixel(x, y).r
 		var f = abs(base - offset)
 		
@@ -737,10 +758,10 @@ func blend_mean_diff_mask(dest_img: Image, src_img: Image, mask_img: Image, rect
 		var x = i % w
 		var y = floor(i / w)
 		
-		# Use red channel (grayscale images), Gradient as mean difference
-		# to neighbours.
+		# Use red channel (grayscale images)
 		var base = src_img.get_pixel(x, y).r
-		var f = abs(base - 0.5)
+		#print_debug("Color ", base)
+		var f = abs(base - offset)
 		
 		poisson_mask.set_pixel(x, y, Color(base, base, base, base))
 	
@@ -785,7 +806,6 @@ func blend_mean_diff_mask(dest_img: Image, src_img: Image, mask_img: Image, rect
 	return dest_img
 
 
-
 ## * * * GDAL * * * *
 
 func gdal_translate_directory(directory : String, destination: String, format: GdalUtils.ImgFormat, bits: int):
@@ -803,6 +823,14 @@ func gdal_translate_one(filepath : String, destination: String, format: GdalUtil
 func gdal_fetch_img_stats(path: String):
 	path = ProjectSettings.globalize_path(path)
 	return _gdal.fetch_img_stats(path)
+
+
+func gdal_calc(pathin: String, pathout: String,  operation: String, debug:bool=false):
+	_gdal.gdal_calc(pathin, pathout, operation, debug)
+
+
+func gdal_execute(executable: String, args: Array, debug=false):
+	_gdal.execute(executable, args, debug)
 
 
 ## * * * ImageMagick * * * *

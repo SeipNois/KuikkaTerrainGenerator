@@ -28,7 +28,8 @@ var parameters : Dictionary = {}
 
 var agent_type : StringName = ""
 
-var blend_multiplier : float = 0.05
+# Scale blending to match color scale
+var blend_multiplier : float = 0.05 # 0.05
 
 ## RNG for making random actions in deterministic way
 var rng : WeightedRNG = WeightedRNG.new()

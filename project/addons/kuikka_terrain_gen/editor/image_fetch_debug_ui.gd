@@ -4,7 +4,7 @@ var convert_source_path = "res://addons/kuikka_terrain_gen/height_samples/SAMPLE
 var convert_source # = DirAccess.get_files_at(convert_source_path)
 var convert_destination : String = "res://addons/kuikka_terrain_gen/height_samples/SAMPLES_PNG"
 var conversion_format : int = 0
-var bits : int = 8
+var bits : int = 0
 
 @onready var convert_image_btn = %ConvertImagesButton
 @onready var format_select = %ImageFormatOption

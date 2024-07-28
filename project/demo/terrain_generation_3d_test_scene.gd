@@ -35,16 +35,20 @@ func _ready():
 	if terrain:
 		terrain.storage.add_region(Vector3.ZERO, [null, null, null])
 		terrain.storage.add_region(Vector3(1024, 0, 0), [null, null, null])
-				
+		
 		if heightmap:
 			print_debug(heightmap)
 			
 			terrain.storage.import_images([heightmap, null, null], Vector3.ZERO, 0, 1)
 	
+		var material = terrain.material
+		terrain.material = material
+	
 	%TerrainGenUI.heightmap_changed.connect(func(hmap): heightmap = hmap)	
 	%TerrainGenUI.input_heightmap_changed.connect(func(hmap): ref_heightmap = hmap)	
 	%TerrainGenUI.height_range_changed.connect(func(s: Vector2): height_scale = s.y-s.x)
-
+	
+	
 func _input(event):
 	if event.is_action_pressed("toggle_ui"):
 		%TerrainGenUI.visible = !%TerrainGenUI.visible

@@ -59,28 +59,70 @@ func generate_terrain():
 					Terrain can't be generated!")
 		return
 	else:
-		# TODO: set [ImageGenParams][member params] for generation
+		#var stats = KuikkaImgUtil.img_get_stats(_selected_hmaps[0])
+		#params.image_height_scale = Vector2(stats.min, stats.max)
+		
+		# Set height range from separate file.
+		var filename = FilePath.get_filename(_selected_hmaps[0]) + "_scale.cfg"
+		var path = FilePath.get_directory(_selected_hmaps[0])
+		var full_path = path+"/"+filename
+		
+		if not FileAccess.file_exists(full_path):
+			printerr("Could not find paired scale configuration file ", filename, " for heightmap!")
+			return
+		var config = ConfigFile.new()
+		var err = config.load(full_path)
+		
+		if err:
+			printerr("Error loading height scale config: ", err)
+			return
+		
+		params.image_height_scale.x = config.get_value("Scale", "min") - 15
+		params.image_height_scale.y = config.get_value("Scale", "max") + 15
+		
 		_hmap_texture_out.texture = null
+		generator.export_map.connect(await_agent_step)
 		generator.generate_terrain_from_reference.call_deferred(_selected_hmaps, _selected_terrain_features, params)
+
+
+func await_agent_step(hmap, areas, timg):
+	hmap.save_png("res://result_comparisons/agent_hmap.png")
+	var dict = KuikkaImgUtil.terrain_image_to_dict(timg)
+	var txt = FileAccess.open("res://result_comparisons/terrain_image.txt", FileAccess.WRITE)
+	
+	for key in dict.keys():
+		txt.store_string("%s\n" % key)
+		for val in dict[key].keys():
+			txt.store_string("%s : %s\n" % [val, dict[key][val]])
+	
+	txt.close()
 
 
 ## * * * * * Signal catches * * * * * 
 
 ## Callback for generation finished to populate ui with resulting heightmap.
-func _on_generation_finished(hmap: Image, agent_travels: Dictionary, terra_img: TerrainFeatureImage):
+func _on_generation_finished(hmap: Image, agent_travels: Dictionary, terra_img: TerrainFeatureImage, gen_time : Vector2=Vector2(NAN, NAN)):
 	# set export path name
-	img_name = KuikkaUtils.rand_string(16)
-	var export_path = ProjectSettings.globalize_path(image_exports_path+"generated_temp"+".png")
+	img_name = FilePath.get_filename(_selected_hmaps[0]) + "_" + KuikkaUtils.rand_string(16)
+	#var export_path_exr = ProjectSettings.globalize_path(image_exports_path+img_name+".exr")
+	var export_path = ProjectSettings.globalize_path(image_exports_path+img_name+".png")
+	# var export_path_scaled = ProjectSettings.globalize_path(image_exports_path+img_name+"-scaled.png")
 	
 	#hmap  = KuikkaImgUtil.image_scale_values(hmap, 0.5)
 	hmap.save_png(export_path)
-	KuikkaImgUtil.img_magick_execute(["convert", export_path, "-blur", "2x3", export_path], true)
-	hmap = Image.load_from_file(export_path)
+	# hmap.save_exr(export_path_exr)
+	
+	# Scale images so that current scale max value is white and minimum black.
+	var scale_min = params.image_height_scale.x
+	var scale_max = params.image_height_scale.y
+	
+	KuikkaImgUtil.img_magick_execute(["convert", export_path, "-blur", "2x3", export_path], false)
+	# KuikkaImgUtil.gdal_execute("gdal_translate.exe", ["-scale", scale_min, scale_max, 0, 255, "-ot", "Int8", export_path, export_path_scaled], false)
+	
+	# Load scaled image as heightmap
+	heightmap = Image.load_from_file(export_path)
 	
 	_hmap_path = export_path
-	#KuikkaImgUtil.img_magick_execute(["-adaptive-blur", 4, 
-	#		ProjectSettings.globalize_path(export_path)])
-	heightmap = hmap# Image.load_from_file(export_path)
 	
 	areas = agent_travels
 	terrain_image = terra_img
@@ -94,32 +136,32 @@ func _on_generation_finished(hmap: Image, agent_travels: Dictionary, terra_img: 
 	var ref_path = _selected_hmaps[0]
 	var ref_name = FilePath.get_filename(ref_path)
 	var ref_export = ProjectSettings.globalize_path(image_exports_path+ref_name+".png")
+	#var ref_export_scaled = ProjectSettings.globalize_path(image_exports_path+ref_name+"-scaled.png")
 	
-	# Blend quantization and reload image
-	var refmap = Image.load_from_file(ref_path)
-	#refmap.resize(1500, 1500)
+	KuikkaImgUtil.img_magick_execute(["convert", ref_path, "-blur", "2x3", "-depth", "16", ref_export], false)
+	#KuikkaImgUtil.gdal_execute("gdal_translate.exe", ["-scale", scale_min, scale_max, 0, 255, "-ot", "Int8", ref_export, ref_export_scaled], false)
 	
-	# refmap = KuikkaImgUtil.image_scale_values(refmap, 0.5)
-	refmap.save_png(ref_export)
-	# KuikkaImgUtil.img_magick_execute(["convert", ref_path, "-blur", "4x6", ref_export], true)
-	refmap = Image.load_from_file(ref_export)
+	# Load scaled image
+	var refmap = Image.load_from_file(ref_export)
+	
+	#refmap = Image.load_from_file(ref_export_scaled)
 	var dup : Image = refmap.duplicate()
 	dup.resize(512, 512, Image.INTERPOLATE_NEAREST)
 	_hmap_texture_in.texture = ImageTexture.create_from_image(dup)
 	input_heightmap_changed.emit(refmap)
 	
-	
-	height_range_changed.emit(terra_img.height_profile.height_range)
-	%MapContainer.height_range = terra_img.height_profile.height_range
-	%InputMapContainer.height_range = terra_img.height_profile.height_range
+	height_range_changed.emit(terra_img.height_profile.represent_range)
+	%MapContainer.height_range = terra_img.height_profile.represent_range
+	%InputMapContainer.height_range = terra_img.height_profile.represent_range
 	_agent_areas_text.set_areas(agent_travels)
 	%MapID.text = "Generation ID " + str(img_name)
 	
+	_comparison.gen_time = gen_time
 	generate_result_comparison()
 	
 	# Export results
-	_on_export_button_pressed()
-	%ResultComparisonUI._on_export_stats_pressed()
+	# _on_export_button_pressed()
+	_comparison._on_export_stats_pressed()
 
 
 func generate_result_comparison():
@@ -132,7 +174,14 @@ func generate_result_comparison():
 	var ostats = KuikkaImgUtil.im_fetch_img_stats(_hmap_path)
 	out_prof = await  KuikkaImgUtil.dict_to_height_profile(ostats)
 	
+	#var format = Image.load_from_file(_selected_hmaps[0]).get_format()
+	#in_prof = await TerrainParser._heightmap_scale_values(in_prof, params, format)
+	#out_prof = TerrainParser._heightmap_scale_values(out_prof, params, format)
+	
 	# Height range from original [TerrainFeatureImage]
+	in_prof.represent_range = params.image_height_scale
+	out_prof.represent_range = params.image_height_scale
+	
 	in_prof.height_range = terrain_image.height_profile.height_range
 	out_prof.height_range = terrain_image.height_profile.height_range
 	
@@ -141,8 +190,10 @@ func generate_result_comparison():
 	
 func update_comparison():
 	if in_prof and out_prof:
+		#var prefix = FilePath.get_filename(_selected_hmaps[0])
+		
 		_comparison.set_images(in_prof, out_prof, img_name)
-
+	
 
 ## Open heightmap file selection
 func _on_select_height_data_files_pressed():
@@ -238,3 +289,11 @@ func _on_spin_box_generations_value_changed(value):
 # Refresh comparison
 func _on_refresh_pressed():
 	update_comparison()
+
+
+func _on_spin_box_h_scale_min_value_changed(value):
+	params.image_height_scale.x = value - 15
+
+
+func _on_spin_box_h_scale_max_value_changed(value):
+	params.image_height_scale.y = value + 15

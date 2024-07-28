@@ -21,7 +21,7 @@ func _generation_process():
 								parameters["hill"].size_std_dev*2))
 		
 	# Blend at current position if within height threshold
-	var rang = terrain_image.height_profile.height_range
+	var rang = terrain_image.height_profile.represent_range
 	var h = rang.x + heightmap.get_pixel(last_position.x, last_position.y).r \
 															* (rang.y-rang.x)
 	# print_debug(h, " ", parameters["hill"].gen_height_min, 

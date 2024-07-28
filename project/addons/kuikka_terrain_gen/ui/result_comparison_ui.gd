@@ -5,6 +5,7 @@ var height_spec = preload("res://addons/kuikka_terrain_gen/ui/height_spec.tscn")
 var input_profile : HeightProfile
 var output_profile : HeightProfile
 var id : String
+var gen_time : Vector2 = Vector2(NAN, NAN)
 
 var exports_path = "res://result_comparisons/"
 
@@ -41,6 +42,10 @@ func update_display():
 	ci.set_height_profile(input_profile)
 	co.set_height_profile(output_profile)
 	
+	var t = get_node_or_null("%TimeLabel")
+	if t and gen_time and gen_time.x != NAN and gen_time.y != NAN:
+		t.text = str(gen_time.y-gen_time.x) + " ms"
+
 
 func _on_export_stats_pressed():
 	const KEYS_VALUES = ["min", "max", "mean", "median", "std_dev"]
@@ -52,10 +57,12 @@ func _on_export_stats_pressed():
 		printerr("Failed to export result comparison. Height profiles have not yet been calculated.")
 		return
 		
-	var ri = input_profile.height_range.y - input_profile.height_range.x
-	var mi = input_profile.height_range.x
-	var ro = output_profile.height_range.y - output_profile.height_range.x
-	var mo = output_profile.height_range.x
+	var ri = input_profile.represent_range.y - input_profile.represent_range.x
+	var mi = input_profile.represent_range.x
+	var ro = output_profile.represent_range.y - output_profile.represent_range.x
+	var mo = output_profile.represent_range.x
+	
+	var depth = input_profile.height_range.y - input_profile.height_range.x
 	
 	var file = FileAccess.open(save_path, FileAccess.WRITE)
 	
@@ -63,31 +70,54 @@ func _on_export_stats_pressed():
 	file.store_string("-------------------------\n")
 	file.store_string("%10-s|%10-s|%10-s|%10-s|%10-s\n" % ["Value", "Input", "Input Norm", "Output", "Output Norm"])
 	for key in KEYS_VALUES:
-		var values = [key, mi+ri*input_profile[key], input_profile[key], 
-						mo+ro*output_profile[key], output_profile[key]]
+		#var values = [key, mi+ri*input_profile[key], input_profile[key], 
+		#				mo+ro*output_profile[key], output_profile[key]]
+		var values= []
+		if key == "std_dev":
+			values = [key, ri*input_profile[key]/depth, input_profile[key]/depth, 
+							ro*output_profile[key]/depth, output_profile[key]/depth]
+		else:
+			values = [key, mi+ri*input_profile[key]/depth, input_profile[key]/depth, 
+							mo+ro*output_profile[key]/depth, output_profile[key]/depth]
 		file.store_string("%10-s|%10f|(%10f)|%10f|(%10f)\n" % values) 
 	
 	for key in KEYS_MEASURE:
 		var values = [key, input_profile[key], " ", 
 						output_profile[key], " "]
 		file.store_string(" %10-s|%10f|(%10-s)|%10f|(%10-s)\n" % values) 
+
+	file.store_string("\n-------------------------\n")
 	
+	file.store_string("\nTotal generation time %d ms\n" % (gen_time.y-gen_time.x))
 	
-	# file.store_string("\n  Height range Input: %f - %f | Output: %f - %f" % [input_profile.height_range.x, input_profile.height_range.y, output_profile.height_range.x, output_profile.height_range.y])
+	file.store_string("\n  Representational range Input: %f - %f | Output: %f - %f" % [input_profile.represent_range.x, 
+																			input_profile.represent_range.y, 
+																			output_profile.represent_range.x, 
+																			output_profile.represent_range.y])
 	
 	file.store_string("\n-------------------------\n")
 	
 	file.store_string("\nInput values")
 	for key in KEYS_VALUES:
-		file.store_string("\n%f" % (mi+ri*input_profile[key]))
+		#file.store_string("\n%f" % (mi+ri*input_profile[key]))
+		if key == "std_dev":
+			file.store_string("\n%f" % (ri*input_profile[key]/depth))
+		else:
+			file.store_string("\n%f" % (mi+ri*input_profile[key]/depth))
 	for key in KEYS_MEASURE:
 		file.store_string("\n%f" % input_profile[key])
 		
 	file.store_string("\nOutput values")
 	for key in KEYS_VALUES:
-		file.store_string("\n%f" % (mo+ro*output_profile[key]))
+		#file.store_string("\n%f" % (mo+ro*output_profile[key]))
+		if key == "std_dev":
+			file.store_string("\n%f" % (ro*output_profile[key]/depth))
+		else:
+			file.store_string("\n%f" % (mo+ro*output_profile[key]/depth))
 	for key in KEYS_MEASURE:
 		file.store_string("\n%f" % output_profile[key])
+	
+	
 	
 	file.close()
 	return

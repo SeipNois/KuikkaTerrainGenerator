@@ -47,6 +47,9 @@ func execute(args: Array, debug=false):
 		printerr("Failed to find ImageMagick executable!")
 		return result
 	
+	if debug:
+		print_debug("Running ImageMagick: ", exec_path+MAGICK, " with arguments ", args)
+	
 	var exitc = OS.execute(exec_path+MAGICK, args, result, debug, debug)
 	if exitc == -1:
 		printerr("Error executing command with imagemagick.")
@@ -99,45 +102,50 @@ func fetch_img_stats(path: String, extended_features: bool = false, debug=false)
 		printerr("Failed to fetch image stats.")
 		return {}
 	
+	if debug:
+		print_debug("Magick processing image ", path)
+		print_debug("Result: \n", result[0])
+	
 	# Split by rows
 	var split = result[0].split("\n")
 	
+	## TODO: Check channel mode and get values from Gray / Red instead
+	## -> Overall stats get from alpha 
+	var color_type = _im_parse_output(_im_parse_output(split, "Image"), "Colorspace")[0].split(":")[1]
+	var depth = _im_parse_output(_im_parse_output(split, "Image"), "Depth")[0].split(":")[1]
+	
+	var channel_name = ""
+	if color_type.contains("Gray"):
+		channel_name = "Gray"
+	elif color_type.contains("RGB"):
+		channel_name = "Red"
+	
 	# Find overall stats.
-	var rows = _im_parse_output(split, "Image statistics")
+	var rows = _im_parse_output(split, "Channel statistics")
 	var end = KuikkaUtils.array_find_index(rows, (func(x): return x.contains("Histogram")))
 	# Split off other than Channel Statistics.
 	if end:
 		rows = rows.slice(0, end)
-
 	
-	var items = _im_parse_output(rows, "Overall")
+	var items = _im_parse_output(rows, channel_name)
 	items = items.slice(1, 9)
 
 	# Use Red channel if Gray is not available.
-	if items.size() < 8:
-		rows = _im_parse_output(split, "Channel statistics")
-		end = KuikkaUtils.array_find_index(rows, (func(x: String): return x.contains("Histogram")))
-		if end:
-			rows = rows.slice(0, end)
-		
-		items = _im_parse_output(rows, "Gray")
-		items = items.slice(1, 9)
-	
-		if debug:
-			print_debug("Red channel result ", items)
+	# if items.size() < 8:
+		#rows = _im_parse_output(split, "Channel statistics")
+		#end = KuikkaUtils.array_find_index(rows, (func(x: String): return x.contains("Histogram")))
+		#if end:
+			#rows = rows.slice(0, end)
+		#
+		#items = _im_parse_output(rows, "Gray")
+		#items = items.slice(1, 9)
+	#
+		#if debug:
+			#print_debug("Red channel result ", items)
 	
 	if debug:
 		print_debug("Stats result ", rows)
 		print_debug("Overall channel result ", items)
-	
-	
-	# Use Red channel if Gray is not available.
-	if items.size() < 8:
-		items = _im_parse_output(rows, "Red")
-		items = items.slice(1, 9)
-	
-		if debug:
-			print_debug("Red channel result ", items)
 	
 	for i in items.size():
 		var item : String = items[i]
@@ -146,18 +154,26 @@ func fetch_img_stats(path: String, extended_features: bool = false, debug=false)
 		item = item.replace("\r", "")
 		item = item.replace("\n", "")
 		
-		# Get normalized value in braces if it exists. Otherwise take default.
-		if item.contains("("):
-			item = item.split("(")[1].split(")")[0]
-		# TODO: Make viable for other than 8-bit values
+		# For 32/16-bit bands get 16-bit value that represents result as meters.
+		if depth.contains("32/16-bit") or depth.contains("16-bit"):
+			if item.contains("("):
+				item = item.split("(")[1].split(")")[0]
+			# Get non scale dependent values kurtosis etc.
+			else:
+				item = item.split(":")[1]
+			items[i] = item
+		# For 16-bit and 8-bit images use bytes band instead of normalized value.
 		else:
-			item = str(float(item.split(":")[1]))
-		items[i] = item
-	
+			# Get normalized value in braces if it exists. Otherwise take default.
+			if item.contains("("):
+				item = str(float(item.split("(")[0].split(":")[1]))
+			# Get non scale dependent values kurtosis etc.
+			else:
+				item = item.split(":")[1]
+			items[i] = item
 	
 	if debug:
 		print("ImageMagick result: \n", result[0], "	\nParsed: ", items)
-	
 	
 	if items.size() < 8:
 		print("ImageMagick result: \n", result[0], "	\nParsed: ", items)

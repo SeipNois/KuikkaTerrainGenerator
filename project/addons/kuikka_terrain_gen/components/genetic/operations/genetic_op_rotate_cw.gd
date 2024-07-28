@@ -9,5 +9,5 @@ func apply_operation(sample : Image) -> Image:
 
 ## Applies genetic operation to image at [param path] using
 ## imagemagick command line tools.
-func apply_operation_path(path : String) -> void:
-	return
+func apply_operation_path(path : String) -> Image:
+	return null

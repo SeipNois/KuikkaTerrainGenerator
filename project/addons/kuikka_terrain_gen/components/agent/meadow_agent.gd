@@ -18,7 +18,7 @@ func _init():
 
 func _generation_process():
 	# Blend at current position if within height threshold
-	var rang = terrain_image.height_profile.height_range
+	var rang = terrain_image.height_profile.represent_range
 	var h = rang.x + heightmap.get_pixel(last_position.x, last_position.y).r \
 															* (rang.y-rang.x)
 	
@@ -112,7 +112,12 @@ func _generation_process():
 ## Setup intial position and start generation.
 func start_generation():
 	# Prepare agent starting state.
-	parameters = { "meadow": terrain_image.features["niitty"] }
+	var meadow = terrain_image.features["niitty"]
+	var field = terrain_image.features["maatalousmaa"]
+	
+	var result = field if field.density > meadow.density else meadow
+	
+	parameters = { "meadow": result }
 	
 	# Double tokens to consume 2 when successful and only one if 
 	# failing to generate.
@@ -138,7 +143,7 @@ func start_generation():
 
 
 func _load_brush():
-	brush = preload("res://addons/kuikka_terrain_gen/brushes/128_gaussian_light.png").get_image()
+	brush = preload("res://addons/kuikka_terrain_gen/brushes/128_gaussian_light.png").get_image()                                        
 	brush.resize(brush_size, brush_size)
 	
 	# Flip brush to black for lakes

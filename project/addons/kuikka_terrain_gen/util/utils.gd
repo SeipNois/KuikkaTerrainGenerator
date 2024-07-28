@@ -100,6 +100,11 @@ static func sample_images_array(paths: Array, size: int,
 	## Split images into given size pieces.
 	print_debug("Splitting images to regions.")
 	for img_path: String in paths:
+		
+		# Sample png instead of original tif.
+		if FilePath.get_extension(img_path) == ".tif":
+			pass
+		
 		var regions = sample_image(img_path, size, destination)
 		
 		result.append_array(regions)
@@ -135,6 +140,7 @@ static func sample_image(img_path : String, size: int, destination: String):
 			else:
 				var new_img_path = FilePath.join([destination, fname])
 				var err = new_img.save_png(new_img_path)
+				# var err = new_img.save_exr(new_img_path)
 			
 				if not err:
 					regions.append(new_img_path)

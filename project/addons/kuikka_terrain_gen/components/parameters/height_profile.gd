@@ -6,6 +6,7 @@ class_name HeightProfile extends Resource
 @export var mean : float
 @export var median : float
 @export var std_dev : float
+
 @export var kurtosis : float
 # g > 0 "leaning" to left, g < 0 "leaning" to right
 @export var skewness : float
@@ -13,6 +14,7 @@ class_name HeightProfile extends Resource
 @export var contrast : float
 @export var correlation : float
 @export var height_range : Vector2
+@export var represent_range : Vector2
 
 ## Calculate comparison value for reference HeightProfile, based on
 ## how much values for each differ from each other.

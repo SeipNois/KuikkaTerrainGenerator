@@ -6,9 +6,11 @@ class_name GdalUtils extends Node
 
 const GDAL_TRANSLATE = "/gdal_translate.exe"
 const GDAL_INFO = "/gdalinfo.exe"
+const GDAL_CALC = "/gdal_calc.exe"
+const EXECUTABLES = ["gdal_translate.exe", "gdalinfo.exe", "gdal_calc.exe", "gdalwarp.exe"]
 
 enum ImgFormat {PNG, EXR, EHdr}
-enum ColorFormat {Byte, Int8, Int16, UInt16, Int32, UInt32}
+enum ColorFormat {Byte, Int8, Int16, UInt16}
 
 @export var gdal_path : StringName =  ProjectSettings.globalize_path(
 	ProjectSettings.get_setting("kuikka_terrain_gen/gdal_path") if ProjectSettings.get_setting("kuikka_terrain_gen/gdal_path") else ""):
@@ -36,6 +38,27 @@ func _process(delta):
 ## Set path to gdal executables
 func set_gdal_path(path: StringName):
 	gdal_path = path
+	
+
+## Execute gdal executable 
+func execute(executable: String, args: Array, debug=false):
+	if not try_load_gdal_executable():
+		printerr("Gdal executables could not be located! Please check gdal_path set in ProjectSettings.")
+		return
+	
+	if not executable in EXECUTABLES:
+		printerr("Invalid name for gdal executable ", executable)
+		
+	var result = []
+	
+	print_debug("Running gdal: ", gdal_path+"/"+executable, " with arguments ", args)
+	
+	var exitc = OS.execute(gdal_path+"/"+executable, args, result, debug, debug)
+	
+	if exitc == -1:
+		printerr("Error executing command with imagemagick.")
+		return result
+	return result
 
 
 ## Convert all valid images in given directory to given format using gdal_translate.
@@ -85,9 +108,16 @@ func gdal_translate_one(filepath : String, destination: String, format: ImgForma
 	var ext = form_str.to_lower()
 	var dest_file = FilePath.join([destination, f_name+"."+ext])
 	
+	var stats = KuikkaImgUtil.img_get_stats(filepath)
+	print_debug("Scaling to stats ", stats.min, " ", stats.max)
+	
 	var bits = ColorFormat.keys()[bit_depth]
 	
-	var args = ["-of", form_str, "-ot", bits]
+	var depth = 65535 if bits == "UInt16" else 255
+	
+	# HACK: Scale to values to original heighmap scale for easier blend.
+	# Use 16-bit band.
+	var args = ["-of", form_str, "-b", 1, "-ot", bits, "-scale", stats.min-15, stats.max+15, 0, depth]
 	
 	#if format == ImgFormat.PNG or format == 0:
 		#args.append_array(["-ot", "UInt16", "-scale", "32.53501", "767.4913", "0", "65535"])
@@ -155,6 +185,22 @@ func fetch_img_stats(path: String, debug=false) -> Dictionary:
 		#push_error("Failed to parse origin coordinate values for ", filepath)
 	
 	return dict
+
+
+## Execute gdal_calc or (gdalwarp) to path with given operation
+func gdal_calc(pathin: String, pathout: String, operation: String, debug:bool=false):
+	if not try_load_gdal_executable():
+		printerr("Gdal executables could not be located! Please check gdal_path set in ProjectSettings.")
+		return
+	
+	var result = []
+	var args = ["--calc=%s" % operation, pathin, pathout]
+	
+	var exitc = OS.execute(gdal_path+GDAL_CALC, args, result, true, debug)
+	
+	if exitc == -1:
+		printerr("Failed to fetch image statistics with gdalinfo.")
+		return
 
 
 ## Check that gdal executables exist in given path

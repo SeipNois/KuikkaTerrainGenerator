@@ -25,7 +25,7 @@ func _generation_process():
 	_update_brush_size(new_size)
 	
 	# Blend at current position if within height threshold
-	var rang = terrain_image.height_profile.height_range
+	var rang = terrain_image.height_profile.represent_range
 	var h = rang.x + heightmap.get_pixel(last_position.x, last_position.y).r \
 															* (rang.y-rang.x)
 	
@@ -148,7 +148,13 @@ func _generation_process():
 ## Setup intial position and start generation.
 func start_generation():
 	# Prepare agent starting state.
-	parameters = { "lake": terrain_image.features["jarvi"] }
+	
+	# Use either lake or sea based on which has more occurences
+	var lake = terrain_image.features["jarvi"]
+	var sea = terrain_image.features["meri"]
+	var result = sea if sea.density > lake.density else lake
+	
+	parameters = { "lake": result }
 	
 	# Double tokens to consume 2 when successful and only one if 
 	# failing to generate.

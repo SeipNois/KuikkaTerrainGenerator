@@ -99,6 +99,36 @@ use_native_dialog = true
 layout_mode = 2
 text = "Open Files"
 
+[node name="LabelHeightScale" type="Label" parent="AspectRatioContainer/CenterContainer/HSplitContainer/LeftSide/VBoxContainer"]
+visible = false
+layout_mode = 2
+text = "Terrain height scale
+"
+
+[node name="HBoxContainerHeightScale" type="HBoxContainer" parent="AspectRatioContainer/CenterContainer/HSplitContainer/LeftSide/VBoxContainer"]
+visible = false
+layout_mode = 2
+
+[node name="Label" type="Label" parent="AspectRatioContainer/CenterContainer/HSplitContainer/LeftSide/VBoxContainer/HBoxContainerHeightScale"]
+layout_mode = 2
+text = "Min"
+
+[node name="SpinBoxHScaleMin" type="SpinBox" parent="AspectRatioContainer/CenterContainer/HSplitContainer/LeftSide/VBoxContainer/HBoxContainerHeightScale"]
+layout_mode = 2
+max_value = 1500.0
+allow_greater = true
+
+[node name="Label2" type="Label" parent="AspectRatioContainer/CenterContainer/HSplitContainer/LeftSide/VBoxContainer/HBoxContainerHeightScale"]
+layout_mode = 2
+text = "Max
+"
+
+[node name="SpinBoxHScaleMax" type="SpinBox" parent="AspectRatioContainer/CenterContainer/HSplitContainer/LeftSide/VBoxContainer/HBoxContainerHeightScale"]
+layout_mode = 2
+max_value = 1500.0
+value = 256.0
+allow_greater = true
+
 [node name="Label3" type="Label" parent="AspectRatioContainer/CenterContainer/HSplitContainer/LeftSide/VBoxContainer"]
 layout_mode = 2
 text = "Generation seed"
@@ -430,6 +460,17 @@ theme_override_constants/margin_bottom = 10
 [node name="VBoxContainer" type="VBoxContainer" parent="AspectRatioContainer/CenterContainer/HSplitContainer/RightSide/TabContainer/Result Comparison"]
 layout_mode = 2
 
+[node name="Time" type="HBoxContainer" parent="AspectRatioContainer/CenterContainer/HSplitContainer/RightSide/TabContainer/Result Comparison/VBoxContainer"]
+layout_mode = 2
+
+[node name="Label" type="Label" parent="AspectRatioContainer/CenterContainer/HSplitContainer/RightSide/TabContainer/Result Comparison/VBoxContainer/Time"]
+layout_mode = 2
+text = "Generation time"
+
+[node name="TimeLabel" type="Label" parent="AspectRatioContainer/CenterContainer/HSplitContainer/RightSide/TabContainer/Result Comparison/VBoxContainer/Time"]
+unique_name_in_owner = true
+layout_mode = 2
+
 [node name="ResultComparisonUI" type="HSplitContainer" parent="AspectRatioContainer/CenterContainer/HSplitContainer/RightSide/TabContainer/Result Comparison/VBoxContainer"]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(0, 400)
@@ -478,6 +519,8 @@ text = "Refresh"
 [connection signal="pressed" from="AspectRatioContainer/CenterContainer/HSplitContainer/LeftSide/VBoxContainer/SelectHeightDataFiles" to="." method="_on_select_height_data_files_pressed"]
 [connection signal="files_selected" from="AspectRatioContainer/CenterContainer/HSplitContainer/LeftSide/VBoxContainer/TerrainDataList/TerrainFileDialog" to="." method="_on_terrain_file_dialog_files_selected"]
 [connection signal="pressed" from="AspectRatioContainer/CenterContainer/HSplitContainer/LeftSide/VBoxContainer/SelectTerrainDataFiles" to="." method="_on_select_terrain_data_files_pressed"]
+[connection signal="value_changed" from="AspectRatioContainer/CenterContainer/HSplitContainer/LeftSide/VBoxContainer/HBoxContainerHeightScale/SpinBoxHScaleMin" to="." method="_on_spin_box_h_scale_min_value_changed"]
+[connection signal="value_changed" from="AspectRatioContainer/CenterContainer/HSplitContainer/LeftSide/VBoxContainer/HBoxContainerHeightScale/SpinBoxHScaleMax" to="." method="_on_spin_box_h_scale_max_value_changed"]
 [connection signal="text_changed" from="AspectRatioContainer/CenterContainer/HSplitContainer/LeftSide/VBoxContainer/LineEdit" to="." method="_on_line_edit_text_changed"]
 [connection signal="value_changed" from="AspectRatioContainer/CenterContainer/HSplitContainer/LeftSide/VBoxContainer/HBoxContainer/SpinBoxMapWidth" to="." method="_on_spin_box_map_width_value_changed"]
 [connection signal="value_changed" from="AspectRatioContainer/CenterContainer/HSplitContainer/LeftSide/VBoxContainer/HBoxContainer/SpinBoxMapHeight" to="." method="_on_spin_box_map_height_value_changed"]

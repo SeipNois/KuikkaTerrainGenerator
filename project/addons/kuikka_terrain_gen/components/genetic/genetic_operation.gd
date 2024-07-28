@@ -19,4 +19,5 @@ func apply_operation_path(path : String) -> Image:
 	var img : Image = await Image.load_from_file(path)
 	img = apply_operation(img)
 	img.save_png(path)
+	#img.save_exr(path)
 	return img

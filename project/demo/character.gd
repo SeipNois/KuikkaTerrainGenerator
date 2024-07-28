@@ -31,6 +31,9 @@ func _process(delta):
 
 
 func _input(event):
+	if event.is_action_pressed("free_mouse"):
+		Input.mouse_mode = Input.MOUSE_MODE_CAPTURED if Input.mouse_mode == Input.MOUSE_MODE_VISIBLE else Input.MOUSE_MODE_VISIBLE
+	
 	if Input.mouse_mode != Input.MOUSE_MODE_CAPTURED:
 		return
 		

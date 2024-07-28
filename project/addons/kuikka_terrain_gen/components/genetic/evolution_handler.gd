@@ -84,8 +84,12 @@ func delete_temp_files():
 	# Gene samples
 	for item in _purge_list:
 		var path = ProjectSettings.globalize_path(Chromosome.TEMP_PATH + str(item) + ".png")
+		#var op_path = ProjectSettings.globalize_path(Chromosome.TEMP_PATH + str(item) + "_processed.png")
+		
 		if FileAccess.file_exists(path):
 			DirAccess.remove_absolute(path)
+		#if FileAccess.file_exists(op_path):
+		#	DirAccess.remove_absolute(op_path)
 	
 	_purge_list.clear()
 	
@@ -202,10 +206,12 @@ func generate_result(fittest: Dictionary) -> Image:
 			
 			# print_debug("applying gene ", gene.get_instance_id(), " ", gene.center)
 			
-			var result = await gene.apply_genetic_operations(false)
+			var result = await gene.apply_genetic_operations(true)
 			var gene_img_stats = await gene.get_image_stats()
 			var rad = Vector2i(result.get_width()/2, result.get_height()/2)
 			var source_rect = result.get_used_rect()
+			
+			print_debug("Gene stats %d : " % gene.get_instance_id(), gene_img_stats)
 			
 			# Create weighted blend mask
 			var mask = blend_mask
@@ -225,17 +231,19 @@ func generate_result(fittest: Dictionary) -> Image:
 			
 			var m_h = 0.5
 			if gene_img_stats.has("mean"):
-				m_h = gene_img_stats.mean
-			# print_debug("Blend offset ", m_h, " ", gene_img_stats.mean)
+				var range = _terrain_image.height_profile.height_range.y - _terrain_image.height_profile.height_range.x
+				m_h = gene_img_stats.mean / range
+				#print_debug("Blend offset ", m_h, " ", gene_img_stats.mean)
 			
-			tile = KuikkaImgUtil.images_blend_alpha(tile, mask)
-			#heightmap.blend_rect_mask(tile, mask, source_rect, Vector2i(gene.center-rad))
-			heightmap = KuikkaImgUtil.blend_mean_diff_mask(heightmap, tile, mask, source_rect, Vector2i(gene.center-rad), m_h)
+			#tile = KuikkaImgUtil.images_blend_alpha(tile, mask)
+			# heightmap.blend_rect_mask(tile, mask, source_rect, Vector2i(gene.center-rad))
+			heightmap = KuikkaImgUtil.blend_rect_diff_mask(heightmap, tile, mask, source_rect, Vector2i(gene.center-rad), m_h)
+			#heightmap = KuikkaImgUtil.blend_mean_diff_mask(heightmap, tile, mask, source_rect, Vector2i(gene.center-rad), m_h)
 
 	heightmap_completed.emit(heightmap)
 	 
 	# Delete gene temp output
-	delete_temp_files.call_deferred()
+	#delete_temp_files.call_deferred()
 	
 	return heightmap
 

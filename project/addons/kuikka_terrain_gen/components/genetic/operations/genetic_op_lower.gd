@@ -23,3 +23,17 @@ func apply_operation(img : Image) -> Image:
 	img = copy
 	
 	return img
+
+
+## Applies genetic operation to image at [param path] using
+## imagemagick command line tools.
+func apply_operation_path(path : String) -> Image:
+	var ext = FilePath.get_extension(path)
+	#var op_path = path.rstrip(ext) + "_processed" + ext
+	
+	KuikkaImgUtil.img_magick_execute(["convert", path, "-modulate", (90*strength), path])
+	#KuikkaImgUtil.gdal_calc(path, op_path, "-%f" % (strength*0.1))
+	var img : Image = await Image.load_from_file(path)
+	# img.save_png(path)
+	
+	return img
