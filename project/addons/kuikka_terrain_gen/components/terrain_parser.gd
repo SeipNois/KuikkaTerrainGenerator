@@ -67,7 +67,7 @@ func parse_data(hmaps: Array, gml: Array, parameters: ImageGenParams):
 	_feature_image = TerrainFeatureImage.new()
 	
 	parse_heightmap_data(hmaps, parameters)
-	parse_gml_data(gml)
+	parse_gml_data(gml, parameters)
 	
 	_image_scale_size_values(_feature_image, parameters)
 	
@@ -80,7 +80,7 @@ func _image_scale_size_values(image, parameters: ImageGenParams):
 										image.features[key], parameters)
 										
 		# Single GML density is for image of size 6000 pixels.
-		image.features[key].density /= 10 # round(parameters.width / 600)
+		#image.features[key].density /= 10 # round(parameters.width / 600)
 	
 
 # Scale gml values by given factor
@@ -152,10 +152,10 @@ func parse_heightmap_data(hmaps:Array, parameters: ImageGenParams):
 
 
 ## Create TerrainFeatureImage content from GML (XML) files.
-func parse_gml_data(files:Array):
+func parse_gml_data(files:Array, params: ImageGenParams):
 	var results = []
 	for file in files:
-		var result = _parse_gml(file)
+		var result = _parse_gml(file, params)
 		results.append(result)
 	
 	var len = results.size()
@@ -202,7 +202,7 @@ static func _parse_heightmap(path: String) -> HeightProfile:
 
 
 ## Parse values from GML file.
-func _parse_gml(path: String) -> Dictionary:
+func _parse_gml(path: String, params: ImageGenParams) -> Dictionary:
 	
 	var gml_item : XMLDocument = XML.parse_file(path)
 	var maasto : XMLNode = gml_item.root
@@ -214,7 +214,7 @@ func _parse_gml(path: String) -> Dictionary:
 		var item = FEATURE_NAMES[key]
 		var node : XMLNode = maasto._get(item["set"])
 		if node:
-			result[key] = feature_from_gml(key, node) 
+			result[key] = feature_from_gml(key, node, params) 
 		else:
 			# Set to empty feature
 			result[key] = TerrainFeature.new()
@@ -223,7 +223,7 @@ func _parse_gml(path: String) -> Dictionary:
 
 
 ## Generate [TerrainFeatureImage.TerrainFeature]
-func feature_from_gml(key: String, gml: XMLNode):
+func feature_from_gml(key: String, gml: XMLNode, params: ImageGenParams):
 	var feat = FEATURE_NAMES[key]
 	var feature = TerrainFeature.new()
 	feature.feature_name = feat["feature"]
@@ -233,7 +233,11 @@ func feature_from_gml(key: String, gml: XMLNode):
 	for c in gml.children:
 		# Filter all feature nodes.
 		if c.name == feat["feature"]:
-			result.append(feat["parser"].parse(c))
+			var res = feat["parser"].parse(c, params)
+			if not res.is_empty():
+				result.append(res)
+			else:
+				print_debug("Skipping empty or out of bounds GML feature %s " % c.name)
 	
 	if result.size() == 0:
 		push_error("Failed to parse GML file.")
@@ -260,6 +264,8 @@ func feature_from_gml(key: String, gml: XMLNode):
 	sizes.sort()
 	if sizes.size() % 2 == 0:
 		feature.size_median = sizes[sizes.size()/2]
+	elif sizes.size() == 1:
+		feature.size_median =sizes[0]
 	else:
 		feature.size_median = sizes[floor(sizes.size()/2)+1]
 	
@@ -278,6 +284,8 @@ func feature_from_gml(key: String, gml: XMLNode):
 	heights.sort()
 	if heights.size() % 2 == 0:
 		feature.gen_height_median = heights[heights.size()/2]
+	elif heights.size() == 1:
+		feature.gen_height_median = heights[0]
 	else:
 		feature.gen_height_median = heights[floor(heights.size()/2)+1]
 	
@@ -308,7 +316,7 @@ static func _xml_parse_nested_if(node: XMLNode, path: Array):
 ## Parsers for different GMLNode types.
 
 class FeatureParser:
-	static func parse(node: XMLNode) -> Array:
+	static func parse(node: XMLNode, params: ImageGenParams) -> Array:
 		printerr("FeatureParser.parse() should be implemented by inheriting class!")
 		return []
 	
@@ -327,7 +335,7 @@ class LinearRingParser extends FeatureParser:
 	##		</Alue>
 	## 	</sijainti>
 	## [/code]
-	static func parse(node: XMLNode) -> Array:
+	static func parse(node: XMLNode, params: ImageGenParams) -> Array:
 		var op_keys = ["sijainti", "Piste", "gml:pos"]
 		var opoint = TerrainParser._xml_parse_nested_if(node, 
 									op_keys)
@@ -340,7 +348,16 @@ class LinearRingParser extends FeatureParser:
 			var a = "/".join(op_keys) + " is null!" if not opoint else ""
 			var b = "/".join(content_keys) + " is null!" if not content_node else ""
 			printerr("Failed to parse XMLNode ", node.name, " ", node ,"%s %s" % [a, b])
-			return [NAN, NAN]
+			return []
+		
+		var pos_str = opoint.content.split(" ")
+		var pos = Vector2(float(pos_str[0]), float(pos_str[1]))
+		
+		# Omit out of bounds
+		if not params.height_tile_rect.has_point(pos):
+			print_debug("Out of bounds ", params.height_tile_rect, " ", pos)
+			return []
+		
 		
 		var dimensions = int(opoint.attributes["srsDimension"])
 									
@@ -399,14 +416,14 @@ class LineParser extends FeatureParser:
 	## 	</sijainti>
 	##		
 	## [/code]
-	static func parse(node: XMLNode) -> Array:
+	static func parse(node: XMLNode, params: ImageGenParams) -> Array:
 		var line_pos_list = TerrainParser._xml_parse_nested_if(node, 
 									["sijainti", "Murtoviiva", "gml:posList"])
 		
 		if not line_pos_list:
 			var a = "Murtoviiva/gml:posList is null!" if not line_pos_list else ""
 			printerr("Failed to parse XMLNode ", node.name, " ", node, "%s" % a)
-			return [NAN, NAN]
+			return []
 		
 		var dimensions = int(line_pos_list.attributes["srsDimension"]) if line_pos_list else 3
 		var content_node = line_pos_list
@@ -438,3 +455,54 @@ class LineParser extends FeatureParser:
 		height /= points.size()
 		
 		return [size, height]
+
+
+## Parse image tile position from .png.aux.xml meta file.
+static func get_tile_position(path: String):
+	path = ProjectSettings.globalize_path(path)
+	
+	if path.get_extension() != "xml":
+		printerr("Unsupported format %s for image tile calculation." % path.get_extension())
+		return Vector2(NAN, NAN)
+	elif not FileAccess.file_exists(path):
+		printerr("File %s doesn't exist. Unable to calculate image tile position." % path)
+		return Vector2(NAN, NAN)
+	else:
+		var xml : XMLDocument = XML.parse_file(path)
+		var item : XMLNode = xml.root._get("GeoTransform")
+		
+		# Should have size() == 6
+		var values = item.content.split(", ")
+		for i in values.size():
+			var v = values[i]
+			values[i] = v.strip_edges(true, true)
+		
+		#  Upper left corner positional xy values, indices 0 and 3
+		var xe = values[0].split("e")
+		var ye = values[3].split("e")
+		
+		var x = float(xe[0]) * pow(10, int(xe[1]))
+		var y = float(ye[0]) * pow(10, int(ye[1]))
+		
+		var upper_left = Vector2(x, y)
+		
+		# Pixel size, indices 1 and 5
+		xe = values[1].split("e")
+		ye = values[5].split("e")
+		x = float(xe[0]) * pow(10, int(xe[1]))
+		y = float(ye[0]) * pow(10, int(ye[1]))
+		
+		var pixel_size = Vector2(x, y)
+		
+		# Indices 2 and 4 have coefficients
+		# (always zero as maps are not rotated)
+		xe = values[2].split("e")
+		ye = values[4].split("e")
+		x = float(xe[0]) * pow(10, int(xe[1]))
+		y = float(ye[0]) * pow(10, int(ye[1]))
+		
+		var coefficients = Vector2(x, y)
+		
+		return [upper_left, pixel_size, coefficients]
+		
+		

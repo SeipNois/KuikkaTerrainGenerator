@@ -16,7 +16,26 @@ class_name ImageGenParams extends Node
 @export var image_height_scale : Vector2 = Vector2(0, 255)
 
 ## Size of imported heightmap tiles.
-var height_tile_size = 3000
+var height_tile_rect : Rect2 = Rect2(Vector2.ZERO, Vector2(3000, 3000))
+
+## Set hegiht tile rectangle from array of [position, scale, rotation]
+func set_height_tile_rect(values: Array):
+	height_tile_rect.position = values[0]
+	var size = values[1]
+	
+	if size.x < 0:
+		height_tile_rect.position.x += size.x * 3000
+		size.x *= -1
+		
+	if size.y < 0:
+		height_tile_rect.position.y += size.y * 3000
+		size.y  *= -1
+	
+	height_tile_rect.size = size * 3000
+	
+	
+	## HACK: Rotation coefficient is always 0 as maps are not rotated so skip it.
+
 ## Size of GML formatted data sample tile.
 var gml_tile_size = 6000
 ## Meters per pixel in heightmaps.

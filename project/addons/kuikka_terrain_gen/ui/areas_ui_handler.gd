@@ -5,10 +5,12 @@ extends Control
 
 var DisplayRect = preload("res://addons/kuikka_terrain_gen/ui/area_overlay_texture.gd")
 var GeneDisplayRect = preload("res://addons/kuikka_terrain_gen/ui/genes_overlay_texture.gd")
+var CoastDisplayRect = preload("res://addons/kuikka_terrain_gen/ui/coast_overlay_texture.gd")
 
 var areas : Dictionary
 
-var colors : Array[Color] = [Color.RED, Color.GREEN, Color.BLUE, Color.GOLDENROD]
+var colors : Array[Color] = [Color.GREEN, Color.RED, Color.BLUE, Color.GOLDENROD]
+var coast_line_color = Color.LIGHT_SEA_GREEN
 
 var gene_colors : Array[Color] = [Color.MAROON, Color.DARK_SEA_GREEN, Color.CADET_BLUE, Color.YELLOW, ]
 
@@ -23,6 +25,7 @@ func _ready():
 	for c in gene_colors.size():
 		gene_colors[c].a = 0.6
 	
+	coast_line_color.a = 0.8
 	if not labels:
 		labels = $VBoxContainer
 
@@ -57,6 +60,12 @@ func draw_areas(new_areas: Dictionary):
 		display.draw_area(areas[area]["agent_travel"], colors[color_i])
 		# else:
 		#	display.draw_area(areas[area]["covered_points"], colors[color_i])
+		
+		# Add coast line for lakes
+		if areas[area].has("coast_line"):
+			var coast = CoastDisplayRect.new()
+			holder.add_child(coast)
+			coast.draw_area(areas[area]["coast_line"], coast_line_color)
 		
 		display.mouse_filter = Control.MOUSE_FILTER_IGNORE
 		# TODO: Draw covered points delaunay

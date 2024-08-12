@@ -806,6 +806,81 @@ func blend_mean_diff_mask(dest_img: Image, src_img: Image, mask_img: Image, rect
 	return dest_img
 
 
+## Blend values from [src_img] pixel to [dest_img] if original [dest_img] is below
+## [src_img] value.
+func blend_below_treshold(dest_img: Image, src_img: Image, rect: Rect2i, pos:Vector2i):
+	var w = rect.size.x
+	var h = rect.size.y
+	var o = rect.position
+	var size = w * h
+	
+	var dest_w = dest_img.get_width()
+	var dest_h = dest_img.get_height()
+	var src_w = src_img.get_width()
+	var src_h = src_img.get_height()
+
+	# Blend image pixels
+	for i in size:
+		var x = i % w
+		var y = floor(i / w)
+		
+		# Skip if outside result image bounding rect or outside blending rect.
+		if pos.x+x >= dest_w or  pos.y+y >= dest_h \
+		or o.x+x >= src_w or o.y >= src_h or pos.x+x < 0 or pos.y+y < 0:
+			continue
+		
+		var base = dest_img.get_pixel(pos.x+x, pos.y+y)
+		var mod = src_img.get_pixel(o.x+x, o.y+y)
+		var a = mod.a
+		
+		if base.r < mod.r:
+			var result = base
+			result.r = base.r + (mod.r-base.r)*a
+			result.g = base.g + (mod.g-base.g)*a
+			result.b = base.b + (mod.b-base.b)*a
+		
+			src_img.set_pixel(pos.x+x, pos.y+y, result)
+	
+	return dest_img
+
+
+## Blend values from [src_img] pixel to [dest_img] if original [dest_img] is below
+## [src_img] value.
+func blend_below_treshold_mask(dest_img: Image, src_img: Image, mask, rect: Rect2i, pos:Vector2i):
+	var w = rect.size.x
+	var h = rect.size.y
+	var o = rect.position
+	var size = w * h
+	
+	var dest_w = dest_img.get_width()
+	var dest_h = dest_img.get_height()
+	var src_w = src_img.get_width()
+	var src_h = src_img.get_height()
+
+	# Blend image pixels
+	for i in size:
+		var x = i % w
+		var y = floor(i / w)
+		
+		# Skip if outside result image bounding rect or outside blending rect.
+		if pos.x+x >= dest_w or  pos.y+y >= dest_h \
+		or o.x+x >= src_w or o.y >= src_h or pos.x+x < 0 or pos.y+y < 0:
+			continue
+		
+		var base = dest_img.get_pixel(pos.x+x, pos.y+y)
+		var mod = src_img.get_pixel(o.x+x, o.y+y)
+		var a = mask.get_pixel(o.x+x, o.y+y)
+		
+		if base.r < mod.r:
+			var result = base
+			result.r = base.r + (mod.r-base.r)*a
+			result.g = base.g + (mod.g-base.g)*a
+			result.b = base.b + (mod.b-base.b)*a
+		
+			src_img.set_pixel(pos.x+x, pos.y+y, result)
+	
+	return dest_img
+
 ## * * * GDAL * * * *
 
 func gdal_translate_directory(directory : String, destination: String, format: GdalUtils.ImgFormat, bits: int):

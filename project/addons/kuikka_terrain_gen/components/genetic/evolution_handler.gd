@@ -92,11 +92,23 @@ func delete_temp_files():
 		#	DirAccess.remove_absolute(op_path)
 	
 	_purge_list.clear()
-	
+
+
+func has_cache():
+	var dir = DirAccess.open(ProjectSettings.globalize_path(Chromosome.TEMP_PATH))
+	if dir and dir.get_files().size() > 0:
+		printerr("Generation might have
+		
+		
+		 uncleaned cached gene samples! Please remove.")
+
 
 ## Setup source heightmap for generation and the database of image samples.
 func setup_evolution_handler(parameters: KuikkaTerrainGenParams, hmap: Image):
 	heightmap = hmap
+	
+	has_cache()
+	
 	setup_database(parameters)
 	setup_completed.emit()
 
@@ -211,7 +223,7 @@ func generate_result(fittest: Dictionary) -> Image:
 			var rad = Vector2i(result.get_width()/2, result.get_height()/2)
 			var source_rect = result.get_used_rect()
 			
-			print_debug("Gene stats %d : " % gene.get_instance_id(), gene_img_stats)
+			#print_debug("Gene stats %d : " % gene.get_instance_id(), gene_img_stats)
 			
 			# Create weighted blend mask
 			var mask = blend_mask

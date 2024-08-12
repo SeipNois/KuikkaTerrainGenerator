@@ -112,7 +112,11 @@ func generate_terrain_from_reference(heightmaps: Array, gml: Array, parameters: 
 
 	var rang = terrain_image.height_profile.represent_range
 
-	var level = terrain_image.height_profile.mean/256 + parameters.start_level# (terrain_image.height_profile.mean-rang.x)/(rang.y-rang.x) + parameters.start_level
+	var level = (
+		terrain_image.height_profile.mean-rng.randf_range(0.5, 1)*terrain_image\
+		.height_profile.std_dev)/256 + parameters.start_level
+		# (terrain_image.height_profile.mean-rang.x)/(rang.y-rang.x) + parameters.start_level
+	# var level = (terrain_image.features["kallioalue"].gen_height_min - rang.x) / (rang.y-rang.x)
 	
 	print_debug("scales ", parameters.image_height_scale, " ", terrain_image.height_profile.represent_range)
 	print_debug("STARTING LEVEL ", level)
@@ -154,6 +158,11 @@ func generate_terrain_from_reference(heightmaps: Array, gml: Array, parameters: 
 	
 	await evolution_handler.heightmap_completed
 	## * * * * * * * * *
+	
+	
+	# Water generation
+	_run_water_generation(terrain_image)
+	await agent_generation_finished
 	
 	var _end_ticks = Time.get_ticks_msec()
 	print_debug("Finished generation ", _end_ticks, "\nTook: ",
@@ -234,7 +243,7 @@ func _setup_agents_image(terrain_image: TerrainFeatureImage, heightmap: Image):
 	for c in get_children():
 		remove_child(c)
 		c.queue_free()
-	agents.append_array([KuikkaLakeAgent.new(), KuikkaHillAgent.new(), KuikkaMeadowAgent.new()])
+	agents.append_array([KuikkaHillAgent.new(), KuikkaMeadowAgent.new()])
 	
 	for agent in agents:
 		agent.heightmap = heightmap
@@ -268,6 +277,27 @@ func _run_evolution_process_image(terrain_image: TerrainFeatureImage):
 	evolution_handler.run_evolution_process_image.call_deferred(terrain_image)
 
 
+func _run_water_generation(terrain_image: TerrainFeatureImage):
+	var agent = KuikkaLakeAgentFlood.new()
+	
+	agent.heightmap = heightmap
+	agent.seed = rng.randi()
+	#agent.state = rng.randi()
+	
+	print_debug(agent.agent_type)
+	agent.terrain_image = terrain_image
+	# Add as child to enable _ready and _process loop for agent Nodes.
+	add_child(agent, true)
+	
+	agent.generation_finished.connect(
+		(func(a): 
+			agent_areas[a.agent_type] = a.area_silhouette
+			agent_generation_finished.emit()))
+	
+	agent.start_generation()
+	return
+
+
 ## * * * * * * * * * * * * * * * * * * * *
 ## Parameters based setup
 
@@ -283,7 +313,7 @@ func _setup_agents(parameters: KuikkaTerrainGenParams, heightmap: Image):
 	for c in get_children():
 		remove_child(c)
 		c.queue_free()
-	agents.append_array([KuikkaLakeAgent.new(), KuikkaHillAgent.new()])
+	agents.append_array([KuikkaLakeAgentFlat.new(), KuikkaHillAgent.new()])
 	
 	for agent in agents:
 		agent.heightmap = heightmap

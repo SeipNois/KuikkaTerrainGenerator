@@ -119,8 +119,8 @@ func start_generation():
 	start_position = Vector2i(rng.randi_range(offset.x, heightmap.get_width()-offset.x),
 								rng.randi_range(offset.y, heightmap.get_height()-offset.y))
 	last_position = start_position
-	move_direction = Vector2i(rng.randi_range(-1, 1),
-								rng.randi_range(-1, 1))
+	move_direction = Vector2(rng.randf_range(-1, 1),
+								rng.randf_range(-1, 1)).normalized()
 	area_silhouette.agent_travel.append(Curve2D.new())
 	
 	# Start generation.

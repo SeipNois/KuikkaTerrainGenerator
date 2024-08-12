@@ -13,4 +13,8 @@ func randi_range_weighted(min, max, mean, std_dev):
 ## Create values based on normal distribution with 
 ## known mean and standard deviation.
 func randi_normal_dist(mean, std_dev):
-	return randi_range(-1, 1) * std_dev + mean
+	return round(randf_normal_dist(mean, std_dev))
+
+
+func randf_normal_dist(mean, std_dev):
+	return randf_range(-1, 1) * std_dev + mean

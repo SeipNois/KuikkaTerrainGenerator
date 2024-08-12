@@ -278,3 +278,56 @@ static func call_callable_tree_recursive(node: Node, callable: Callable, args: A
 	for child in node.get_children():
 		call_callable_tree_recursive(child, callable, args)
 	return
+
+
+## Sort points into clockwise order around center as mean of all points.
+static func make_clockwise(points: Array) -> Array:
+	if points.size() == 0:
+		printerr("Failed to make polygon clockwise. Polygon has no points.")
+		return points
+	
+	var mean_x = 0
+	var mean_y = 0
+	
+	var ref_p : Array = points
+	
+	mean_x = ref_p.reduce(func(mean_x, p): return mean_x + p.x, 0)
+	mean_y = ref_p.reduce(func(mean_y, p): return mean_y + p.y, 0)
+	
+	mean_x /= ref_p.size()
+	mean_y /= ref_p.size()
+	
+	var center = Vector2(mean_x, mean_y)
+	
+	ref_p.sort_custom(func(a, b): return atan2(a.y-center.y, a.x-center.x) > atan2(b.y-center.y, b.x-center.x))
+	points = ref_p
+	return points
+
+
+## Get point in [Array][points] closest to point [ref]
+static func get_closest_point(ref: Vector2, points: Array):
+	var result : Vector2
+	
+	# Result in original format that can be Vector2 or Vector2i
+	var result_formatted
+	
+	for i in points.size():
+		var p = points[i]
+		if p is Vector2i:
+			p = Vector2(p)
+		
+		if i == 0 or ref.distance_squared_to(p) < ref.distance_squared_to(result):
+			result = p
+			result_formatted = points[i]
+	
+	return result_formatted
+
+
+## Convert dictionary to arrayof its values
+static func dict_to_array(dict: Dictionary) -> Array:
+	var result = []
+
+	for k in dict.keys():
+		result.append(dict[k])
+	
+	return result

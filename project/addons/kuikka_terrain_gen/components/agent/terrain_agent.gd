@@ -10,7 +10,7 @@ class_name KuikkaTerrainAgent extends Node
 
 
 ## Method used to place genes in area silhouette.
-enum GeneDistribute {DIRECT, LINEAR, RECT, DELAUNAY, CONCAVE}
+enum GeneDistribute {DIRECT, LINEAR, RECT, DELAUNAY, CONCAVE, NONE}
 
 signal generation_finished(agent: KuikkaTerrainAgent)
 signal generation_step
@@ -139,6 +139,8 @@ func _create_gene_map():
 		# GeneDistribute.CONCAVE:
 		GeneDistribute.DIRECT:
 			_genes_travel_direct()
+		GeneDistribute.NONE:
+			area_silhouette.gene_points = []
 		_:
 			_genes_travel_linear()
 		

@@ -4,6 +4,8 @@ extends Control
 ## National Land Survey database instead of user input parameter values.
 
 signal heightmap_changed(hmap: Image)
+signal colormap_changed(color_map: Image)
+signal maps_changed(maps: Array)
 signal input_heightmap_changed(ref: Image)
 signal height_range_changed(range: Vector2)
 
@@ -80,6 +82,10 @@ func generate_terrain():
 		params.image_height_scale.x = config.get_value("Scale", "min") - 15
 		params.image_height_scale.y = config.get_value("Scale", "max") + 15
 		
+		var aux = FilePath.get_directory(_selected_hmaps[0]) + "/" + FilePath.get_filename(_selected_hmaps[0]) + ".png.aux.xml"
+		var scaling_values = TerrainParser.get_tile_position(aux)
+		params.set_height_tile_rect(scaling_values)
+		
 		_hmap_texture_out.texture = null
 		generator.export_map.connect(await_agent_step)
 		generator.generate_terrain_from_reference.call_deferred(_selected_hmaps, _selected_terrain_features, params)
@@ -130,7 +136,19 @@ func _on_generation_finished(hmap: Image, agent_travels: Dictionary, terra_img: 
 	_areas_output.draw_areas(agent_travels)
 	_terrain_features.update_feature_list(terrain_image)
 	#heightmap.resize(256, 256)
-	heightmap_changed.emit(heightmap)
+
+	var polygons = areas["KuikkaLakeAgent"]["coast_line"]
+	#areas["KuikkaLakeAgent"]["coast_line"] = polygons
+	
+	#for i in polygons.size():
+	#	var p = polygons[i]
+	#	polygons[i] = KuikkaUtils.merge_points_by_distance(p, 20)
+	
+	var maps = [heightmap, areas["KuikkaLakeAgent"]["cover_map"]]
+	maps_changed.emit(maps)
+	#heightmap_changed.emit(heightmap)
+	
+	#colormap_changed.emit(areas["KuikkaLakeAgent"]["cover_map"])
 	
 	# Create smoothed out map from input map to blend in height quantization.
 	var ref_path = _selected_hmaps[0]
