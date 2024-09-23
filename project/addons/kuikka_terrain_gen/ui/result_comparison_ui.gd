@@ -42,16 +42,21 @@ func update_display():
 	ci.set_height_profile(input_profile)
 	co.set_height_profile(output_profile)
 	
-	var t = get_node_or_null("%TimeLabel")
+	var t = get_node_or_null("../Time/TimeLabel")	
 	if t and gen_time and gen_time.x != NAN and gen_time.y != NAN:
 		t.text = str(gen_time.y-gen_time.x) + " ms"
+	return
+
+func _on_export_stats_threaded():
+	WorkerThreadPool.add_task(_on_export_stats_pressed)
 
 
 func _on_export_stats_pressed():
+	print_debug("Export result comparison...")
 	const KEYS_VALUES = ["min", "max", "mean", "median", "std_dev"]
 	const KEYS_MEASURE = ["entropy", "kurtosis", "skewness"]
-	var save_path = exports_path+id+".txt"
-	print_debug("Exporting result comparison for ", id, " in '", save_path, "'")
+	var save_path = ProjectSettings.globalize_path(exports_path+id+".txt")
+	#print_debug("Exporting result comparison for %s to <%s>" % [id, save_path])
 	
 	if not input_profile or not output_profile:
 		printerr("Failed to export result comparison. Height profiles have not yet been calculated.")
@@ -65,6 +70,10 @@ func _on_export_stats_pressed():
 	var depth = input_profile.height_range.y - input_profile.height_range.x
 	
 	var file = FileAccess.open(save_path, FileAccess.WRITE)
+	
+	if not file:
+		printerr("Failed to open file %s for saving result comparison." % save_path)
+		return
 	
 	file.store_string("Result comparison for generation %s \n\n" % id)
 	file.store_string("-------------------------\n")
@@ -117,7 +126,6 @@ func _on_export_stats_pressed():
 	for key in KEYS_MEASURE:
 		file.store_string("\n%f" % output_profile[key])
 	
-	
-	
 	file.close()
+	#print_debug("Comparison exporting done.")
 	return

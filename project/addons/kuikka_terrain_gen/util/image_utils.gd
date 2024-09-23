@@ -150,32 +150,32 @@ func img_get_frequency(path: String):
 	#return fft
 
 
-## Calculate FFT for image by rows using Godot-fft Fast fourier transform.
-func fft2d(img : Image):
-	var byte_array : PackedByteArray = img.save_png_to_buffer()
-	var ffts = []
-	var w = img.get_width()
-	
-	for y in img.get_height():
-		# Calculate fft by row
-		var subarr = byte_array.slice(y*w, (y+1)*w)
-		ffts.append_array(FFT.fft(subarr))
-	
-	# var result = FFT.fft(ffts)
-	var result = ffts.map(func(comp): return comp if comp is int else comp.re)
-	return result
+### Calculate FFT for image by rows using Godot-fft Fast fourier transform.
+#func fft2d(img : Image):
+	#var byte_array : PackedByteArray = img.save_png_to_buffer()
+	#var ffts = []
+	#var w = img.get_width()
+	#
+	#for y in img.get_height():
+		## Calculate fft by row
+		#var subarr = byte_array.slice(y*w, (y+1)*w)
+		#ffts.append_array(FFT.fft(subarr))
+	#
+	## var result = FFT.fft(ffts)
+	#var result = ffts.map(func(comp): return comp if comp is int else comp.re)
+	#return result
 
 
-func visualize_fft2(img : Image):
-	var array = fft2d(img)
-	var w = floor(sqrt(array.size()))
-	var new_img = Image.create(w, w, false, Image.FORMAT_RGBA8)
-	
-	for y in w:
-		for x in w:
-			var i = w*y+x
-			var c = array[i]
-			new_img.set_pixel(x, y, Color(c, c, c))
+#func visualize_fft2(img : Image):
+	#var array = fft2d(img)
+	#var w = floor(sqrt(array.size()))
+	#var new_img = Image.create(w, w, false, Image.FORMAT_RGBA8)
+	#
+	#for y in w:
+		#for x in w:
+			#var i = w*y+x
+			#var c = array[i]
+			#new_img.set_pixel(x, y, Color(c, c, c))
 
 
 ## # # # # # # # # # # # # # # # # 

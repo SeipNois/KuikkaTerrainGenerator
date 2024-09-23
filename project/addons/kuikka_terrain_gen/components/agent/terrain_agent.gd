@@ -56,7 +56,7 @@ var tokens: int = 0:
 	set(val):
 		tokens = val
 		if tokens <= 0:
-			pass
+			tokens = 0
 			# generation_finished.emit(self)
 			# process_mode = Node.PROCESS_MODE_DISABLED
 
@@ -87,12 +87,21 @@ var _delaunay = Delaunay.new()
 
 
 func _init():
+	set_process(false)
 	agent_type = &"KuikkaTerrainAgent"
 
 
 # Called when the node enters the scene tree for the first time.
 func _ready():
-	process_mode = Node.PROCESS_MODE_DISABLED
+	set_process(false)
+
+
+func _process(delta):
+	if tokens > 0:
+		_generation_process()
+	else:
+		set_process(false)
+		finish_generation()
 
 
 func _physics_process(delta):
@@ -110,22 +119,26 @@ func start_generation():
 	# Start generation if there are tokens left. Otherwise consider generation
 	# instantly completed.
 	if tokens > 0:
+		set_process(true)
 		print_debug(agent_type, " started run with ", tokens, " tokens.")
-		generation_step.connect(func():
-									if tokens > 0:
-										_generation_process()
-									else:
-										finish_generation())
-		_generation_process.call_deferred()
+		#generation_step.connect(func():
+									#if tokens > 0:
+										#_generation_process()
+									#else:
+										#finish_generation())
+		#_generation_process.call_deferred()
 	else:
 		print_debug(agent_type, " no tokens assigned. Skipping generation.")
+		
+		# Await to let preparation complete if finishing immediately from setup.
+		await get_tree().process_frame
 		finish_generation()
 
 
 func finish_generation():
 	_map_covered_points()
 	_create_gene_map()
-	process_mode = Node.PROCESS_MODE_DISABLED
+	set_process(false)
 	generation_finished.emit(self)
 
 
@@ -143,8 +156,9 @@ func _create_gene_map():
 			area_silhouette.gene_points = []
 		_:
 			_genes_travel_linear()
-		
-	area_silhouette["gene_mask"] = gene_mask
+	
+	if gene_placement != GeneDistribute.NONE:
+		area_silhouette["gene_mask"] = gene_mask
 
 
 ## --- Gene coverage options ---

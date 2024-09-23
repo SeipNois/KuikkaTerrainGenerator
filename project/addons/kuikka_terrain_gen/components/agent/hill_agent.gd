@@ -29,8 +29,8 @@ func _generation_process():
 				
 	if last_position.x > 0 and last_position.x < heightmap.get_width() and \
 	last_position.y > 0 and last_position.y < heightmap.get_height() and\
-	h > parameters["hill"].gen_height_min and \
-	h < parameters["hill"].gen_height_max:
+	h > parameters["hill"].gen_height_min-0.01 and \
+	h < parameters["hill"].gen_height_max+0.01:
 		
 		#heightmap.blend_rect(brush,
 					#brush.get_used_rect(), 

@@ -81,7 +81,12 @@ func _input(event):
 		var map_point = tooltip.global_position-texture_rect.global_position
 		var height = NAN
 		if texture_rect.texture:
-			height = texture_rect.texture.get_image().get_pixel(round(map_point.x/controlled_child.scale.x),round(map_point.y/controlled_child.scale.y)).r
+			var img = texture_rect.texture.get_image()
+			var x =  round(map_point.x/controlled_child.scale.x)
+			var y = round(map_point.y/controlled_child.scale.y)
+			
+			if x < img.get_width() and y < img.get_height():
+				height = texture_rect.texture.get_image().get_pixel(x, y).r
 		var real_value = height_range.x + (height_range.y-height_range.x) * height
 		
 		tooltip.text = "H: %f (%d, %d) \n[Normalized: %f] " % [real_value, map_point.x/controlled_child.scale.x, map_point.y/controlled_child.scale.y, height]

@@ -20,11 +20,15 @@ grow_horizontal = 2
 grow_vertical = 2
 
 [node name="VBoxContainer" type="VBoxContainer" parent="CenterContainer"]
+custom_minimum_size = Vector2(0, 800)
 layout_mode = 2
 
 [node name="TextEdit" type="TextEdit" parent="CenterContainer/VBoxContainer"]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(500, 500)
+custom_minimum_size = Vector2(500, 600)
+layout_mode = 2
+
+[node name="HBoxContainer" type="HBoxContainer" parent="CenterContainer/VBoxContainer"]
 layout_mode = 2
 
 [node name="FileDialog" type="FileDialog" parent="CenterContainer/VBoxContainer"]
@@ -35,9 +39,27 @@ file_mode = 0
 access = 2
 use_native_dialog = true
 
+[node name="AuxFileName" type="LineEdit" parent="CenterContainer/VBoxContainer"]
+unique_name_in_owner = true
+layout_mode = 2
+
+[node name="AuxFileDialog" type="FileDialog" parent="CenterContainer/VBoxContainer"]
+unique_name_in_owner = true
+title = "Open a File"
+size = Vector2i(299, 154)
+ok_button_text = "Avaa"
+file_mode = 0
+access = 2
+use_native_dialog = true
+
 [node name="FileNameLine" type="LineEdit" parent="CenterContainer/VBoxContainer"]
 unique_name_in_owner = true
 layout_mode = 2
+
+[node name="AuxOpenFile" type="Button" parent="CenterContainer/VBoxContainer"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Open Aux File"
 
 [node name="OpenFileBtn" type="Button" parent="CenterContainer/VBoxContainer"]
 unique_name_in_owner = true
@@ -45,4 +67,6 @@ layout_mode = 2
 text = "Open GML"
 
 [connection signal="file_selected" from="CenterContainer/VBoxContainer/FileDialog" to="." method="_on_file_dialog_file_selected"]
+[connection signal="file_selected" from="CenterContainer/VBoxContainer/AuxFileDialog" to="." method="_on_aux_file_dialog_file_selected"]
+[connection signal="pressed" from="CenterContainer/VBoxContainer/AuxOpenFile" to="." method="_on_aux_open_file_pressed"]
 [connection signal="pressed" from="CenterContainer/VBoxContainer/OpenFileBtn" to="." method="_on_open_file_btn_pressed"]

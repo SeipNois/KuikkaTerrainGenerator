@@ -31,6 +31,8 @@ func _ready():
 
 func draw_areas(new_areas: Dictionary):
 	areas = new_areas
+	# FIXME: Remove to enable
+	return
 	
 	holder.custom_minimum_size = custom_minimum_size
 	labels.custom_minimum_size = custom_minimum_size
@@ -61,11 +63,22 @@ func draw_areas(new_areas: Dictionary):
 		# else:
 		#	display.draw_area(areas[area]["covered_points"], colors[color_i])
 		
-		# Add coast line for lakes
+		## Add coast line for lakes
 		if areas[area].has("coast_line"):
 			var coast = CoastDisplayRect.new()
 			holder.add_child(coast)
 			coast.draw_area(areas[area]["coast_line"], coast_line_color)
+			
+			var l = Label.new()
+			labels.add_child(l)
+			l.text = "Coastline"
+			l.set("theme_override_colors/font_color", coast_line_color)
+			
+			var coast_toggle = CheckButton.new()
+			coast_toggle.toggled.connect(func(toggled): coast.visible = toggled)
+			labels.add_child(coast_toggle)
+			coast_toggle.toggle_mode = true
+			coast_toggle.button_pressed = true
 		
 		display.mouse_filter = Control.MOUSE_FILTER_IGNORE
 		# TODO: Draw covered points delaunay

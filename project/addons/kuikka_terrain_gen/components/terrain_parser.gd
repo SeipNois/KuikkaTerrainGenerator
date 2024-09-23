@@ -238,9 +238,10 @@ func feature_from_gml(key: String, gml: XMLNode, params: ImageGenParams):
 				result.append(res)
 			else:
 				print_debug("Skipping empty or out of bounds GML feature %s " % c.name)
+				#pass
 	
 	if result.size() == 0:
-		push_error("Failed to parse GML file.")
+		push_error("Failed to parse GML file, key <%s>." % key)
 		return TerrainFeature.new()
 	
 	var sizes = result.map(func(x): return x[0])
@@ -353,9 +354,10 @@ class LinearRingParser extends FeatureParser:
 		var pos_str = opoint.content.split(" ")
 		var pos = Vector2(float(pos_str[0]), float(pos_str[1]))
 		
-		# Omit out of bounds
-		if not params.height_tile_rect.has_point(pos):
-			print_debug("Out of bounds ", params.height_tile_rect, " ", pos)
+		# Omit out of bounds, skip if rect unspecified
+		if KuikkaUtils.is_valid_rect(params.height_tile_rect) and \
+		not params.height_tile_rect.has_point(pos) and node.name != "meri":
+			#print_debug("Out of bounds ", params.height_tile_rect, " ", pos)
 			return []
 		
 		

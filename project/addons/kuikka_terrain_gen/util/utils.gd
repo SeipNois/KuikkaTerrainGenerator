@@ -266,7 +266,7 @@ static func merge_points_by_distance(cloud: Array, treshold: float):
 	print_debug("Merged point groups to size ", result.size())
 	
 	return result
-
+	
 
 ## Call [Callable] [param callable] for node and all its recursive children.
 ## NOTE: Callable should have [param node] as its first argument.
@@ -331,3 +331,19 @@ static func dict_to_array(dict: Dictionary) -> Array:
 		result.append(dict[k])
 	
 	return result
+
+
+## Encode array values to Terrain3D controlmap bits.
+static func encode_terrain_3d_control(array: Array) -> int:
+	return Terrain3DUtil.enc_base(array[0]) | Terrain3DUtil.enc_overlay(array[1]) | \
+			Terrain3DUtil.enc_blend(array[2]) | Terrain3DUtil.enc_uv_rotation(array[3]) | \
+			Terrain3DUtil.enc_uv_scale(array[4]) | Terrain3DUtil.enc_auto(array[5]) | \
+			Terrain3DUtil.enc_nav(array[6]) | Terrain3DUtil.enc_hole(array[7])
+			
+
+
+static func int_to_binary(val: int) -> String:
+	return String.num_int64(val, 2)
+	
+static func is_valid_rect(rect: Rect2) -> bool:
+	return rect.position != Vector2(NAN, NAN) and rect.size != Vector2(NAN, NAN)

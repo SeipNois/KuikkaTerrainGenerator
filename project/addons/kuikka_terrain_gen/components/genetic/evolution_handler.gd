@@ -92,7 +92,7 @@ func delete_temp_files():
 		#	DirAccess.remove_absolute(op_path)
 	
 	_purge_list.clear()
-
+	
 
 func has_cache():
 	var dir = DirAccess.open(ProjectSettings.globalize_path(Chromosome.TEMP_PATH))
@@ -255,7 +255,10 @@ func generate_result(fittest: Dictionary) -> Image:
 	heightmap_completed.emit(heightmap)
 	 
 	# Delete gene temp output
-	#delete_temp_files.call_deferred()
+	delete_temp_files.call_deferred()
+	
+	# Clear generation chromosomes when done.
+	chromosomes.clear()
 	
 	return heightmap
 

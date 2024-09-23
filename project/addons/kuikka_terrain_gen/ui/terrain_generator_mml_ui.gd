@@ -4,10 +4,11 @@ extends Control
 ## National Land Survey database instead of user input parameter values.
 
 signal heightmap_changed(hmap: Image)
-signal colormap_changed(color_map: Image)
-signal maps_changed(maps: Array)
+signal colormap_changed(color_map: Array)
 signal input_heightmap_changed(ref: Image)
 signal height_range_changed(range: Vector2)
+signal ref_gis_colormap_changed(map : Image)
+signal screen_shot
 
 var _selected_hmaps: Array
 var _selected_terrain_features: Array
@@ -24,6 +25,8 @@ var export_selection = 0
 var heightmap: Image
 var _hmap_path : String
 var img_name : String = "heightmap_temp"
+
+var ref_color_map: Image
 
 var in_prof : HeightProfile
 var out_prof : HeightProfile
@@ -108,25 +111,27 @@ func await_agent_step(hmap, areas, timg):
 
 ## Callback for generation finished to populate ui with resulting heightmap.
 func _on_generation_finished(hmap: Image, agent_travels: Dictionary, terra_img: TerrainFeatureImage, gen_time : Vector2=Vector2(NAN, NAN)):
+	_async_finished.call_deferred(hmap, agent_travels, terra_img, gen_time)
+	
+func _async_finished(hmap: Image, agent_travels: Dictionary, terra_img: TerrainFeatureImage, gen_time : Vector2=Vector2(NAN, NAN)):
+	%GenerateButton.self_modulate = Color.WHITE
 	# set export path name
 	img_name = FilePath.get_filename(_selected_hmaps[0]) + "_" + KuikkaUtils.rand_string(16)
 	#var export_path_exr = ProjectSettings.globalize_path(image_exports_path+img_name+".exr")
 	var export_path = ProjectSettings.globalize_path(image_exports_path+img_name+".png")
 	# var export_path_scaled = ProjectSettings.globalize_path(image_exports_path+img_name+"-scaled.png")
 	
-	#hmap  = KuikkaImgUtil.image_scale_values(hmap, 0.5)
 	hmap.save_png(export_path)
-	# hmap.save_exr(export_path_exr)
+	heightmap = hmap.duplicate()
 	
 	# Scale images so that current scale max value is white and minimum black.
 	var scale_min = params.image_height_scale.x
 	var scale_max = params.image_height_scale.y
-	
+		
 	KuikkaImgUtil.img_magick_execute(["convert", export_path, "-blur", "2x3", export_path], false)
-	# KuikkaImgUtil.gdal_execute("gdal_translate.exe", ["-scale", scale_min, scale_max, 0, 255, "-ot", "Int8", export_path, export_path_scaled], false)
-	
+
 	# Load scaled image as heightmap
-	heightmap = Image.load_from_file(export_path)
+	#heightmap = Image.load_from_file(export_path)
 	
 	_hmap_path = export_path
 	
@@ -137,18 +142,25 @@ func _on_generation_finished(hmap: Image, agent_travels: Dictionary, terra_img: 
 	_terrain_features.update_feature_list(terrain_image)
 	#heightmap.resize(256, 256)
 
-	var polygons = areas["KuikkaLakeAgent"]["coast_line"]
+	var polygons = areas["KuikkaLakeAgent"]["coast_line"] if areas.has("KuikkaLakeAgent") else []
 	#areas["KuikkaLakeAgent"]["coast_line"] = polygons
 	
 	#for i in polygons.size():
 	#	var p = polygons[i]
 	#	polygons[i] = KuikkaUtils.merge_points_by_distance(p, 20)
 	
-	var maps = [heightmap, areas["KuikkaLakeAgent"]["cover_map"]]
-	maps_changed.emit(maps)
-	#heightmap_changed.emit(heightmap)
+	heightmap_changed.emit(heightmap)
+	var cmap = areas["KuikkaLakeAgent"]["cover_map"] if areas.has("KuikkaLakeAgent") else []
+	colormap_changed.emit(cmap)
 	
-	#colormap_changed.emit(areas["KuikkaLakeAgent"]["cover_map"])
+	var gfilename = FilePath.get_filename(_selected_hmaps[0]) + "_colormap.jpg"
+	var gpath = FilePath.get_directory(_selected_hmaps[0])
+	var gfull_path = gpath+"/"+gfilename
+	
+	var gis_map = Image.load_from_file(gfull_path)
+	gis_map.resize(512, 512, Image.INTERPOLATE_NEAREST)
+	ref_gis_colormap_changed.emit(gis_map)
+	ref_color_map = gis_map
 	
 	# Create smoothed out map from input map to blend in height quantization.
 	var ref_path = _selected_hmaps[0]
@@ -180,17 +192,29 @@ func _on_generation_finished(hmap: Image, agent_travels: Dictionary, terra_img: 
 	# Export results
 	# _on_export_button_pressed()
 	_comparison._on_export_stats_pressed()
+	
+	screen_shot.emit()
+	
+	print_debug("Generation finished done.")
+	return
 
 
 func generate_result_comparison():
-	var istats = KuikkaImgUtil.im_fetch_img_stats(_selected_hmaps[0])
+	print_debug("Generating result comparison.")
+	
+	if not FileAccess.file_exists(_selected_hmaps[0]):
+		printerr("Failed to load source heightmap for result comparison!")
+	if not FileAccess.file_exists(_hmap_path):
+		printerr("Failed to load result heightmap for result comparison!")
+	
+	var istats = KuikkaImgUtil.img_get_stats(_selected_hmaps[0])
 	in_prof = KuikkaImgUtil.dict_to_height_profile(istats)
 	
 	# if not _hmap_path:
 	# _on_export_button_pressed()
 	
-	var ostats = KuikkaImgUtil.im_fetch_img_stats(_hmap_path)
-	out_prof = await  KuikkaImgUtil.dict_to_height_profile(ostats)
+	var ostats = KuikkaImgUtil.img_get_stats(_hmap_path)
+	out_prof = KuikkaImgUtil.dict_to_height_profile(ostats)
 	
 	#var format = Image.load_from_file(_selected_hmaps[0]).get_format()
 	#in_prof = await TerrainParser._heightmap_scale_values(in_prof, params, format)
@@ -203,13 +227,15 @@ func generate_result_comparison():
 	in_prof.height_range = terrain_image.height_profile.height_range
 	out_prof.height_range = terrain_image.height_profile.height_range
 	
+	#print_debug("Result comparison generated. Updating comparison.")
 	update_comparison()
+	#print_debug("Result comparison updated.")
+	return
 	
 	
 func update_comparison():
 	if in_prof and out_prof:
 		#var prefix = FilePath.get_filename(_selected_hmaps[0])
-		
 		_comparison.set_images(in_prof, out_prof, img_name)
 	
 
@@ -233,6 +259,7 @@ func _on_terrain_file_dialog_files_selected(paths):
 
 ## Run generation
 func _on_generate_button_pressed():
+	%GenerateButton.self_modulate = Color.DARK_SLATE_GRAY
 	generate_terrain()
 
 
@@ -286,6 +313,8 @@ func _on_export_button_pressed():
 # Refresh 3D Terrain
 func _on_button_pressed():
 	heightmap_changed.emit(heightmap)
+	colormap_changed.emit(areas["KuikkaLakeAgent"]["cover_map"])
+	ref_gis_colormap_changed.emit(ref_color_map)
 
 
 # Refresh heightmap / overlays drawn
@@ -315,3 +344,8 @@ func _on_spin_box_h_scale_min_value_changed(value):
 
 func _on_spin_box_h_scale_max_value_changed(value):
 	params.image_height_scale.y = value + 15
+
+
+
+func _on_screenshot_button_pressed():
+	screen_shot.emit()

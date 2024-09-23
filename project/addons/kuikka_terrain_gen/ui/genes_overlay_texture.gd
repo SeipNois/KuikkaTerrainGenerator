@@ -5,6 +5,9 @@ extends TextureRect
 var points : Array
 var color : Color
 
+var img : Image
+var img_size:Vector2i=Vector2i(512, 512)
+
 
 func draw_area(new_p: Array, new_color: Color):
 	points = new_p

@@ -10,7 +10,7 @@ var start_position: Vector2i = Vector2i.ZERO
 var last_position: Vector2i = Vector2i.ZERO
 var move_direction: Vector2 = Vector2.ZERO
 
-var mask = preload("res://addons/kuikka_terrain_gen/brushes/128_gaussian.png").get_image()
+var mask = preload("res://addons/kuikka_terrain_gen/brushes/128_gaussian_light.png").get_image()
 
 func _init():
 	agent_type = &"KuikkaMeadowAgent"
@@ -27,8 +27,8 @@ func _generation_process():
 	
 	if last_position.x > 0 and last_position.x < heightmap.get_width() and \
 	last_position.y > 0 and last_position.y < heightmap.get_height() and\
-	h > parameters["meadow"].gen_height_min and \
-	h < parameters["meadow"].gen_height_max:
+	h > parameters["meadow"].gen_height_min-0.01 and \
+	h < parameters["meadow"].gen_height_max+0.01:
 		
 		# Update brush
 		var new_size = rng.randi_normal_dist(parameters["meadow"].size_mean*1.6, 
@@ -44,10 +44,10 @@ func _generation_process():
 		var flat = Image.create(brush.get_width(), brush.get_height(), false, heightmap.get_format())
 		mask.resize(flat.get_width(), flat.get_height())
 		flat.fill(Color(flat_h, flat_h, flat_h, 1))
-		flat = KuikkaImgUtil.images_blend_alpha(flat, mask)
+		flat = KuikkaImgUtil.images_blend_alpha(flat, mask, "r")
 		flat = KuikkaImgUtil.image_mult_alpha(flat, 0.3)
 		
-		heightmap = KuikkaImgUtil.blend_rect_diff_mask(heightmap, flat, brush, 
+		heightmap = KuikkaImgUtil.blend_mean_diff_mask(heightmap, flat, brush, 
 								flat.get_used_rect(), last_position-offset, 1)
 		
 		area_silhouette.agent_travel[-1].add_point(last_position)

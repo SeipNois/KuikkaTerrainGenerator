@@ -40,6 +40,7 @@ var _active_agents : Array[KuikkaTerrainAgent]
 
 var agent_areas : Dictionary
 
+var water_map
 
 func _enter_tree():
 	# Already loaded
@@ -113,8 +114,10 @@ func generate_terrain_from_reference(heightmaps: Array, gml: Array, parameters: 
 	var rang = terrain_image.height_profile.represent_range
 
 	var level = (
-		terrain_image.height_profile.mean-rng.randf_range(0.5, 1)*terrain_image\
+		terrain_image.height_profile.mean+rng.randf_range(-1, 1)*terrain_image\
 		.height_profile.std_dev)/256 + parameters.start_level
+	
+	#level = clampf(level, 0, 1)
 		# (terrain_image.height_profile.mean-rang.x)/(rang.y-rang.x) + parameters.start_level
 	# var level = (terrain_image.features["kallioalue"].gen_height_min - rang.x) / (rang.y-rang.x)
 	
@@ -138,7 +141,7 @@ func generate_terrain_from_reference(heightmaps: Array, gml: Array, parameters: 
 	
 	# Wait for agent generation to finish
 	await agent_generation_finished
-	export_map.emit(heightmap, agent_areas, terrain_image)
+	export_map.emit(heightmap.duplicate(), agent_areas, terrain_image)
 	
 	# FIXME: DEBUG REMOVE to allow agent output
 	# heightmap.fill(parameters.start_level)
@@ -164,12 +167,27 @@ func generate_terrain_from_reference(heightmaps: Array, gml: Array, parameters: 
 	_run_water_generation(terrain_image)
 	await agent_generation_finished
 	
+	for p in water_map.keys():
+		var h = clamp(water_map[p], 0, 1)
+		##print_debug("Set pixel in hmap ", p, " ", h)
+		heightmap.set_pixel(p.x, p.y, Color(h, h, h, 1))
+	
 	var _end_ticks = Time.get_ticks_msec()
 	print_debug("Finished generation ", _end_ticks, "\nTook: ",
 	str(_end_ticks-_start_ticks))
 	
-	generation_finished.emit(heightmap, agent_areas, terrain_image, Vector2(_start_ticks, _end_ticks))
+	_cleanup()
 	
+	generation_finished.emit(heightmap.duplicate(), agent_areas, terrain_image, Vector2(_start_ticks, _end_ticks))
+	return
+
+
+func _cleanup():
+	for c in get_children():
+		remove_child(c)
+		c.queue_free()
+	agents.clear()
+
 
 ## Update heightsamples sorting based on new parameters.
 func resort_height_samples(parameters: KuikkaTerrainGenParams):
@@ -292,6 +310,7 @@ func _run_water_generation(terrain_image: TerrainFeatureImage):
 	agent.generation_finished.connect(
 		(func(a): 
 			agent_areas[a.agent_type] = a.area_silhouette
+			water_map = a.processed
 			agent_generation_finished.emit()))
 	
 	agent.start_generation()
